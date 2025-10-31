@@ -1,3 +1,5 @@
+"use client";
+
 import { Card } from "@/components/common/Card";
 import { ContentWrapper } from "@/components/layout/ContentWrapper";
 import { Receipt, Clock } from "lucide-react";

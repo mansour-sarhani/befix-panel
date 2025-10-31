@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getAuthToken, deleteAuthToken } from '@/lib/cookies';
+import { getAuthToken, clearAuthToken } from '@/lib/cookies';
 import { verifyToken } from '@/lib/jwt';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
@@ -160,7 +160,7 @@ export async function DELETE(request) {
         );
 
         // Delete auth cookie
-        await deleteAuthToken();
+        await clearAuthToken();
 
         return response;
     } catch (error) {
