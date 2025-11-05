@@ -56,6 +56,11 @@ const initialState = {
         page: 1,
         limit: 10,
         total: 0,
+        pages: 0,
+    },
+    links: {
+        next: null,
+        prev: null,
     },
     filters: {
         search: "",
@@ -91,12 +96,14 @@ const usersSlice = createSlice({
             })
             .addCase(fetchUsers.fulfilled, (state, action) => {
                 state.loading = false;
-                state.list = action.payload.users || action.payload;
-                if (action.payload.pagination) {
-                    state.pagination = action.payload.pagination;
-                } else {
-                    state.pagination.total = action.payload.total || action.payload.length;
-                }
+                
+                // Handle backend response structure: { data, links, meta }
+                state.list = action.payload.data;
+                state.pagination.page = action.payload.meta.current_page;
+                state.pagination.pages = action.payload.meta.last_page;
+                state.pagination.total = action.payload.meta.total;
+                state.links.next = action.payload.links?.next || null;
+                state.links.prev = action.payload.links?.prev || null;
             })
             .addCase(fetchUsers.rejected, (state, action) => {
                 state.loading = false;
@@ -111,8 +118,8 @@ const usersSlice = createSlice({
             })
             .addCase(createUser.fulfilled, (state, action) => {
                 state.loading = false;
-                state.list.unshift(action.payload);
-                state.pagination.total += 1;
+                // Note: With server-side pagination, we should refetch the current page
+                // instead of manipulating local state. This will be handled in the component.
             })
             .addCase(createUser.rejected, (state, action) => {
                 state.loading = false;
@@ -145,8 +152,8 @@ const usersSlice = createSlice({
             })
             .addCase(deleteUser.fulfilled, (state, action) => {
                 state.loading = false;
-                state.list = state.list.filter((user) => user.id !== action.payload && user._id !== action.payload);
-                state.pagination.total -= 1;
+                // Note: With server-side pagination, we should refetch the current page
+                // instead of manipulating local state. This will be handled in the component.
             })
             .addCase(deleteUser.rejected, (state, action) => {
                 state.loading = false;

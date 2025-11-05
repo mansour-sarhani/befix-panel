@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Menu, Bell, User, ChevronDown, LogOut, Settings } from "lucide-react";
+import { Menu, User, ChevronDown, LogOut, Settings } from "lucide-react";
 import { ThemeToggle } from "@/components/common/ThemeToggle";
+import { NotificationDropdown } from "@/components/layout/NotificationDropdown";
 import { useAuth } from "@/contexts/AuthContext";
 
 export const Header = ({ onMenuClick, sidebarCollapsed }) => {
@@ -57,23 +58,7 @@ export const Header = ({ onMenuClick, sidebarCollapsed }) => {
                     <ThemeToggle />
 
                     {/* Notifications */}
-                    <button
-                        className="relative p-2.5 rounded-lg transition-all hover:scale-105"
-                        style={{
-                            color: "var(--color-text-secondary)",
-                            backgroundColor:
-                                "var(--color-background-secondary)",
-                        }}
-                        aria-label="Notifications"
-                    >
-                        <Bell className="w-5 h-5" />
-                        {/* Notification badge */}
-                        <span className="absolute top-1.5 right-1.5 min-w-[8px] h-2 px-1 bg-red-500 rounded-full flex items-center justify-center">
-                            <span className="text-[8px] text-white font-bold">
-                                3
-                            </span>
-                        </span>
-                    </button>
+                    <NotificationDropdown />
 
                     {/* User menu */}
                     <div className="relative">

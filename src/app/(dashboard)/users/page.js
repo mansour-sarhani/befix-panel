@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { fetchUsers, deleteUser, setFilters, setPage } from "@/features/users/usersSlice";
 import { toast } from "sonner";
@@ -27,6 +27,7 @@ import { Users, Plus, Search, Filter } from "lucide-react";
 
 export default function UsersPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const dispatch = useAppDispatch();
 
     const {
@@ -42,39 +43,141 @@ export default function UsersPage() {
     const [userToDelete, setUserToDelete] = useState(null);
     const [isDeleting, setIsDeleting] = useState(false);
 
-    // Fetch users on mount and when filters/pagination change
+    // Update URL with current state
+    const updateUrl = useCallback(
+        (params) => {
+            const url = new URL(window.location);
+
+            // Update or remove parameters
+            Object.entries(params).forEach(([key, value]) => {
+                if (value && value !== "all" && value !== "") {
+                    url.searchParams.set(key, value);
+                } else {
+                    url.searchParams.delete(key);
+                }
+            });
+
+            // Remove page=1 to keep URLs clean
+            if (url.searchParams.get("page") === "1") {
+                url.searchParams.delete("page");
+            }
+
+            router.push(url.pathname + url.search, { scroll: false });
+        },
+        [router]
+    );
+
+    // Fetch users directly from URL parameters (URL is source of truth)
     useEffect(() => {
+        // Get URL parameters with validation
+        let page = parseInt(searchParams.get("page")) || 1;
+        const search = searchParams.get("search") || "";
+        const status = searchParams.get("status") || "all";
+        const role = searchParams.get("role") || "all";
+
+        // Validate page number
+        if (page < 1) page = 1;
+
+        // Validate status and role values
+        const validStatuses = ["all", "active", "inactive", "suspended"];
+        const validRoles = ["all", "admin", "manager", "user"];
+
+        const validatedStatus = validStatuses.includes(status) ? status : "all";
+        const validatedRole = validRoles.includes(role) ? role : "all";
+
+        // Sync local search term state with URL
+        if (search !== searchTerm) {
+            setSearchTerm(search);
+        }
+
+        // Sync Redux state with URL (for displaying in UI)
+        dispatch(setPage(page));
+        dispatch(
+            setFilters({
+                search: search,
+                status: validatedStatus,
+                role: validatedRole,
+            })
+        );
+
+        // Fetch users with URL parameters directly
         dispatch(
             fetchUsers({
-                page: pagination.page,
-                limit: pagination.limit,
-                search: filters.search,
-                status: filters.status,
-                role: filters.role,
+                page: page,
+                limit: 10,
+                search: search,
+                status: validatedStatus,
+                role: validatedRole,
                 sortBy: "createdAt",
                 sortOrder: "desc",
             })
         );
-    }, [dispatch, pagination.page, pagination.limit, filters.search, filters.status, filters.role]);
+    }, [searchParams, dispatch, searchTerm]); // Include all dependencies
 
-    // Handle search input change (debounced)
+    // Handle search input change (debounced) - update URL
     useEffect(() => {
+        // Get current URL params to preserve filters
+        const currentSearch = searchParams.get("search") || "";
+        const currentStatus = searchParams.get("status") || "all";
+        const currentRole = searchParams.get("role") || "all";
+
+        // Only update if searchTerm is different from URL
+        if (searchTerm === currentSearch) {
+            return;
+        }
+
         const delayDebounce = setTimeout(() => {
-            dispatch(setFilters({ search: searchTerm }));
+            updateUrl({
+                page: 1, // Reset to first page when search changes
+                search: searchTerm,
+                status: currentStatus,
+                role: currentRole,
+            });
         }, 500);
 
         return () => clearTimeout(delayDebounce);
-    }, [searchTerm, dispatch]);
+    }, [searchTerm, searchParams, updateUrl]); // Depend on searchTerm and searchParams
 
-    // Handle filter changes
+    // Handle filter changes - update URL which will trigger data fetch
     const handleFilterChange = (filterName, value) => {
-        dispatch(setFilters({ [filterName]: value }));
-        dispatch(setPage(1)); // Reset to first page when filters change
+        // Get current URL params
+        const currentSearch = searchParams.get("search") || "";
+        const currentStatus = searchParams.get("status") || "all";
+        const currentRole = searchParams.get("role") || "all";
+
+        // Build new params based on which filter changed
+        const newParams = {
+            page: 1, // Reset to first page when filters change
+            search: currentSearch,
+            status: currentStatus,
+            role: currentRole,
+        };
+
+        // Update the changed filter
+        newParams[filterName] = value;
+
+        updateUrl(newParams);
     };
 
-    // Handle page change
+    // Handle page change - update URL which will trigger data fetch
     const handlePageChange = (newPage) => {
-        dispatch(setPage(newPage));
+        // Get current URL params
+        const currentSearch = searchParams.get("search") || "";
+        const currentStatus = searchParams.get("status") || "all";
+        const currentRole = searchParams.get("role") || "all";
+
+        updateUrl({
+            page: newPage,
+            search: currentSearch,
+            status: currentStatus,
+            role: currentRole,
+        });
+
+        // Smooth scroll to top after page change
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth",
+        });
     };
 
     // Handle delete user
@@ -92,6 +195,19 @@ export default function UsersPage() {
             toast.success("User deleted successfully");
             setDeleteModalOpen(false);
             setUserToDelete(null);
+
+            // Refetch current page after deletion for server-side pagination
+            dispatch(
+                fetchUsers({
+                    page: pagination.page,
+                    limit: pagination.limit,
+                    search: filters.search,
+                    status: filters.status,
+                    role: filters.role,
+                    sortBy: "createdAt",
+                    sortOrder: "desc",
+                })
+            );
         } catch (error) {
             toast.error(error.message || "Failed to delete user");
         } finally {
@@ -269,8 +385,8 @@ export default function UsersPage() {
                                     <TableRow key={user._id}>
                                         <TableCell>
                                             <div className="flex items-center gap-3">
-                                                <Avatar 
-                                                    src={user.avatar} 
+                                                <Avatar
+                                                    src={user.avatar}
                                                     alt={user.name}
                                                     size="sm"
                                                 />

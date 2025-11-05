@@ -14,7 +14,7 @@ export const userService = {
      * @param {string} params.role - Filter by role
      * @param {string} params.sortBy - Sort field
      * @param {string} params.sortOrder - Sort order (asc/desc)
-     * @returns {Promise<Object>} Response with users array and pagination
+     * @returns {Promise<Object>} Response with { data: [...], links: {next, prev}, meta: {current_page, last_page, total} }
      */
     getUsers: async (params = {}) => {
         return await api.get('/api/users', { params });

@@ -1,5 +1,6 @@
 import { configureStore } from "@reduxjs/toolkit";
 import usersReducer from "@/features/users/usersSlice";
+import notificationsReducer from "@/features/notifications/notificationsSlice";
 
 // Import other slices here as we create them
 // import companiesReducer from "@/features/companies/companiesSlice";
@@ -12,6 +13,7 @@ export const makeStore = () => {
     return configureStore({
         reducer: {
             users: usersReducer,
+            notifications: notificationsReducer,
             // Add other reducers here as we create them
             // companies: companiesReducer,
             // transactions: transactionsReducer,
@@ -35,6 +37,7 @@ export const store = makeStore();
 
 // Infer the `RootState` and `AppDispatch` types from the store itself
 export const selectUsers = (state) => state.users;
+export const selectNotifications = (state) => state.notifications;
 export const selectCompanies = (state) => state.companies;
 export const selectTransactions = (state) => state.transactions;
 export const selectPackages = (state) => state.packages;

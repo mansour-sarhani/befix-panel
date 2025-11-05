@@ -27,6 +27,7 @@ export const Button = ({
     type = "button",
     onClick,
     children,
+    icon = null,
     className = "",
     ...props
 }) => {
@@ -74,6 +75,7 @@ export const Button = ({
                     size={size === "sm" ? 14 : size === "lg" ? 20 : 16}
                 />
             )}
+            {!loading && icon && icon}
             {children}
         </button>
     );

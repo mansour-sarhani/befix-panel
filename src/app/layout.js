@@ -3,6 +3,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { StoreProvider } from "@/lib/StoreProvider";
+import { NotificationProvider } from "@/contexts/NotificationContext";
 import { Toaster } from "sonner";
 
 const geistSans = Geist({
@@ -29,7 +30,9 @@ export default function RootLayout({ children }) {
                 <ThemeProvider>
                     <AuthProvider>
                         <StoreProvider>
-                            {children}
+                            <NotificationProvider>
+                                {children}
+                            </NotificationProvider>
                             <Toaster position="top-right" richColors />
                         </StoreProvider>
                     </AuthProvider>

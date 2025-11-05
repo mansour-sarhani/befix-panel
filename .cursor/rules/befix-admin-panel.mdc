@@ -396,6 +396,226 @@ src/
 - Thunks call service layer functions (e.g., `userService.getUsers()`)
 - Use `useAppDispatch` and `useAppSelector` hooks (not plain Redux hooks)
 
+### Server-Side Pagination Patterns (CRITICAL)
+
+**⚠️ IMPORTANT: All new features MUST use server-side pagination for optimal performance!**
+
+#### Backend API Response Structure
+
+All paginated endpoints MUST return this exact structure:
+
+```javascript
+{
+  data: [...],                    // Array of actual items
+  links: {
+    next: "url?page=2&limit=10",  // Next page URL (null if last page)
+    prev: "url?page=1&limit=10"   // Previous page URL (null if first page)
+  },
+  meta: {
+    current_page: 1,              // Current page number
+    last_page: 10,                // Total pages available
+    total: 100                    // Total items count
+  }
+}
+```
+
+#### Redux Slice Pattern
+
+```javascript
+// Required state structure for all paginated features
+const initialState = {
+    list: [],
+    loading: false,
+    error: null,
+    pagination: {
+        page: 1,
+        limit: 10,
+        total: 0,
+        pages: 0,
+    },
+    links: {
+        next: null,
+        prev: null,
+    },
+    filters: {
+        search: "",
+        status: "all",
+        // ... feature-specific filters
+    },
+};
+
+// Handle API response in fetchItems.fulfilled
+.addCase(fetchItems.fulfilled, (state, action) => {
+    state.loading = false;
+    state.list = action.payload.data;
+    state.pagination.page = action.payload.meta.current_page;
+    state.pagination.pages = action.payload.meta.last_page;
+    state.pagination.total = action.payload.meta.total;
+    state.links.next = action.payload.links?.next || null;
+    state.links.prev = action.payload.links?.prev || null;
+})
+```
+
+#### URL State Management Pattern (CRITICAL - Avoid Circular Dependencies!)
+
+**⚠️ IMPORTANT: URL must be the SINGLE source of truth to prevent infinite loops!**
+
+```javascript
+// Required imports for pagination
+import { useRouter, useSearchParams } from "next/navigation";
+
+// Update URL without page refresh
+const updateUrl = useCallback((params) => {
+    const url = new URL(window.location);
+    
+    Object.entries(params).forEach(([key, value]) => {
+        if (value && value !== "all" && value !== "") {
+            url.searchParams.set(key, value);
+        } else {
+            url.searchParams.delete(key);
+        }
+    });
+
+    // Keep URLs clean (remove page=1)
+    if (url.searchParams.get("page") === "1") {
+        url.searchParams.delete("page");
+    }
+
+    router.push(url.pathname + url.search, { scroll: false });
+}, [router]);
+
+// Fetch data directly from URL (URL is the single source of truth)
+useEffect(() => {
+    // Get and validate URL parameters
+    let page = parseInt(searchParams.get("page")) || 1;
+    const search = searchParams.get("search") || "";
+    const status = searchParams.get("status") || "all";
+    
+    // Validate page number
+    if (page < 1) page = 1;
+    
+    // Validate filter values (customize per feature)
+    const validStatuses = ["all", "active", "inactive"];
+    const validatedStatus = validStatuses.includes(status) ? status : "all";
+    
+    // Sync Redux state with URL (for UI display only)
+    dispatch(setPage(page));
+    dispatch(setFilters({ search, status: validatedStatus }));
+    
+    // Fetch data with URL parameters directly
+    dispatch(fetchItems({
+        page,
+        limit: 10,
+        search,
+        status: validatedStatus,
+    }));
+}, [searchParams, dispatch]); // Only depend on searchParams and dispatch
+```
+
+#### Component Integration Pattern
+
+```javascript
+// Page change handler - reads current state from URL
+const handlePageChange = (newPage) => {
+    const currentSearch = searchParams.get("search") || "";
+    const currentStatus = searchParams.get("status") || "all";
+    
+    updateUrl({
+        page: newPage,
+        search: currentSearch,
+        status: currentStatus,
+    });
+    
+    // Smooth scroll to top
+    window.scrollTo({ top: 0, behavior: "smooth" });
+};
+
+// Filter change handler - reads current state from URL
+const handleFilterChange = (filterName, value) => {
+    const currentSearch = searchParams.get("search") || "";
+    const currentStatus = searchParams.get("status") || "all";
+    
+    const newParams = {
+        page: 1, // Reset to first page when filters change
+        search: currentSearch,
+        status: currentStatus,
+    };
+    
+    // Update the changed filter
+    newParams[filterName] = value;
+    
+    updateUrl(newParams);
+};
+
+// Debounced search handler (optional)
+useEffect(() => {
+    const currentSearch = searchParams.get("search") || "";
+    
+    // Only update if different from URL
+    if (searchTerm === currentSearch) return;
+    
+    const delayDebounce = setTimeout(() => {
+        const currentStatus = searchParams.get("status") || "all";
+        updateUrl({
+            page: 1,
+            search: searchTerm,
+            status: currentStatus,
+        });
+    }, 500);
+    
+    return () => clearTimeout(delayDebounce);
+}, [searchTerm, searchParams, updateUrl]);
+
+// Pagination component usage
+<Pagination
+    currentPage={pagination.page}
+    totalPages={pagination.pages}
+    onPageChange={handlePageChange}
+    totalItems={pagination.total}
+    itemsPerPage={pagination.limit}
+/>
+```
+
+#### Implementation Checklist
+
+When implementing pagination for any new feature:
+
+**Backend (API Route):**
+- [ ] Accept `page`, `limit`, `search`, and feature-specific filter parameters
+- [ ] Return standardized `{ data, links, meta }` response structure
+- [ ] Calculate `current_page`, `last_page`, `total` correctly
+- [ ] Generate `next`/`prev` URLs with proper parameters
+
+**Redux Slice:**
+- [ ] Add `pagination`, `links`, and `filters` to initial state
+- [ ] Handle `fetchItems.fulfilled` to extract `data`, `links`, `meta`
+- [ ] Create `setFilters` and `setPage` reducers
+
+**Component (List Page):**
+- [ ] Import `useSearchParams`, `useRouter` from Next.js
+- [ ] Implement `getUrlParams()` with feature-specific validation
+- [ ] Implement `updateUrl()` for URL state management
+- [ ] Create `handlePageChange()` and `handleFilterChange()` handlers
+- [ ] Add URL sync effect with `useEffect(() => {}, [searchParams])`
+- [ ] Add smooth scroll behavior on page changes
+
+**URL Structure:**
+- [ ] Base: `/feature` (page 1, no filters)
+- [ ] Paginated: `/feature?page=2`
+- [ ] Filtered: `/feature?page=1&search=term&status=active`
+
+#### Reference Implementation
+
+- **Complete Example:** User Management (`src/app/(dashboard)/users/page.js`)
+- **API Route:** `src/app/api/users/route.js`
+- **Redux Slice:** `src/features/users/usersSlice.js`
+- **Service:** `src/services/user.service.js`
+
+#### Documentation
+
+- **Full Guide:** `docs/PAGINATION_PATTERNS.md`
+- **Implementation Plan:** `docs/IMPLEMENTATION_PLAN.md` (Server-Side Pagination section)
+
 ### Component Patterns
 - **Server Components:** Default for pages, static content
 - **Client Components ('use client'):** Required for Redux, Context, interactivity
@@ -409,8 +629,12 @@ src/
 - Follow the established patterns in the codebase
 - **ALWAYS use CSS custom properties for colors (never hard-code)**
 - **Use Redux for business data, Context for auth/theme only**
+- **ALWAYS implement server-side pagination for new features using the standardized patterns**
+- **Reference User Management implementation as the template for all paginated features**
+- **Ensure URL state management is included for bookmarkable and shareable URLs**
+- **Follow the exact `{ data, links, meta }` response structure for API consistency**
 - Ask for clarification when requirements are ambiguous
 - Provide explanations for non-trivial code
 - Consider accessibility in UI components
 - Suggest improvements proactively but respect user decisions
-- Reference documentation: IMPLEMENTATION_PLAN.md, REDUX_GUIDE.md, DARK_MODE_GUIDE.md
+- Reference documentation: IMPLEMENTATION_PLAN.md, PAGINATION_PATTERNS.md, REDUX_GUIDE.md, DARK_MODE_GUIDE.md

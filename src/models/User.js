@@ -117,6 +117,31 @@ const UserSchema = new mongoose.Schema(
                 },
             },
         ],
+        fcmTokens: [
+            {
+                token: {
+                    type: String,
+                    required: true,
+                },
+                device: {
+                    type: String,
+                    enum: ['web', 'ios', 'android'],
+                    default: 'web',
+                },
+                browser: {
+                    type: String,
+                    default: null,
+                },
+                createdAt: {
+                    type: Date,
+                    default: Date.now,
+                },
+                lastUsed: {
+                    type: Date,
+                    default: Date.now,
+                },
+            },
+        ],
         resetPasswordToken: {
             type: String,
             default: null,
@@ -192,6 +217,61 @@ UserSchema.methods.updateLastLogin = async function () {
  */
 UserSchema.statics.findByEmailWithPassword = function (email) {
     return this.findOne({ email }).select('+password');
+};
+
+/**
+ * Method to add or update FCM token
+ * @param {string} token - FCM token
+ * @param {string} device - Device type (web/ios/android)
+ * @param {string} browser - Browser name (optional)
+ * @returns {Promise<Document>} Updated user document
+ */
+UserSchema.methods.addFcmToken = async function (token, device = 'web', browser = null) {
+    // Check if token already exists
+    const existingTokenIndex = this.fcmTokens.findIndex(
+        (t) => t.token === token
+    );
+
+    if (existingTokenIndex !== -1) {
+        // Update existing token's lastUsed timestamp
+        this.fcmTokens[existingTokenIndex].lastUsed = new Date();
+        if (browser) {
+            this.fcmTokens[existingTokenIndex].browser = browser;
+        }
+    } else {
+        // Add new token
+        this.fcmTokens.push({
+            token,
+            device,
+            browser,
+            createdAt: new Date(),
+            lastUsed: new Date(),
+        });
+    }
+
+    return await this.save();
+};
+
+/**
+ * Method to remove FCM token
+ * @param {string} token - FCM token to remove
+ * @returns {Promise<Document>} Updated user document
+ */
+UserSchema.methods.removeFcmToken = async function (token) {
+    this.fcmTokens = this.fcmTokens.filter((t) => t.token !== token);
+    return await this.save();
+};
+
+/**
+ * Method to get all active FCM tokens for push notifications
+ * @returns {Array<string>} Array of token strings
+ */
+UserSchema.methods.getActiveFcmTokens = function () {
+    // Return tokens that were used in the last 60 days
+    const sixtyDaysAgo = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000);
+    return this.fcmTokens
+        .filter((t) => t.lastUsed >= sixtyDaysAgo)
+        .map((t) => t.token);
 };
 
 // Prevent model recompilation in development (Next.js hot reload)

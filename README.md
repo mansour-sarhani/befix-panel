@@ -316,6 +316,7 @@ npm run start
 ## 📚 Documentation
 
 - **Implementation Plan:** `docs/IMPLEMENTATION_PLAN.md` - Comprehensive development roadmap
+- **Pagination Patterns:** `docs/PAGINATION_PATTERNS.md` - Server-side pagination implementation guide
 - **Component Examples:** Available at `/components-demo` (when logged in)
 - **API Documentation:** Coming soon
 

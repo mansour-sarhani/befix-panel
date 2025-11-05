@@ -8,6 +8,13 @@ import { uploadFile } from '@/lib/storage';
 /**
  * GET /api/users
  * Get list of users with pagination, search, and filters
+ * 
+ * Response format:
+ * {
+ *   data: [...],
+ *   links: { next: "url", prev: "url" },
+ *   meta: { current_page: 1, last_page: 10, total: 100 }
+ * }
  */
 export async function GET(request) {
     try {
@@ -71,15 +78,22 @@ export async function GET(request) {
             User.countDocuments(query),
         ]);
 
+        // Calculate pagination metadata
+        const totalPages = Math.ceil(total / limit);
+        const hasNext = page < totalPages;
+        const hasPrev = page > 1;
+
         return NextResponse.json(
             {
-                success: true,
-                users: users,
-                pagination: {
-                    page,
-                    limit,
-                    total,
-                    pages: Math.ceil(total / limit),
+                data: users,
+                links: {
+                    next: hasNext ? `${request.url.split('?')[0]}?page=${page + 1}&limit=${limit}` : null,
+                    prev: hasPrev ? `${request.url.split('?')[0]}?page=${page - 1}&limit=${limit}` : null,
+                },
+                meta: {
+                    current_page: page,
+                    last_page: totalPages,
+                    total: total,
                 },
             },
             { status: 200 }

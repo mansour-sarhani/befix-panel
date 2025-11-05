@@ -10,6 +10,8 @@ import {
     UserPlus,
     Database,
     Network,
+    Bell,
+    Send,
 } from "lucide-react";
 
 export const navigation = [
@@ -17,6 +19,11 @@ export const navigation = [
         name: "Dashboard",
         href: "/dashboard",
         icon: LayoutDashboard,
+    },
+    {
+        name: "Notifications",
+        href: "/notifications",
+        icon: Bell,
     },
     {
         name: "User Management",
@@ -50,6 +57,16 @@ export const navigation = [
     },
 ];
 
+// Admin-only navigation items
+export const adminNavigation = [
+    {
+        name: "Send Notification",
+        href: "/notifications/send",
+        icon: Send,
+        roles: ['admin', 'manager'], // Only visible to admin and manager
+    },
+];
+
 // Development/Testing pages (optional, can be hidden in production)
 export const devNavigation = [
     {
@@ -71,6 +88,21 @@ export const devNavigation = [
         name: "Test Axios",
         href: "/test-axios",
         icon: Network,
+    },
+    {
+        name: "Firebase FCM Test",
+        href: "/firebase-test",
+        icon: Bell,
+    },
+    {
+        name: "Backend Notification Test",
+        href: "/backend-notification-test",
+        icon: Send,
+    },
+    {
+        name: "🔍 Debug Auth",
+        href: "/debug-auth",
+        icon: Database,
     },
 ];
 
