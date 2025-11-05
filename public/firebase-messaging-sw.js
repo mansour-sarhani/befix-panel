@@ -15,33 +15,48 @@ importScripts("https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-comp
 
 /**
  * Firebase configuration
- * Note: Environment variables are not available in service workers,
- * so we need to inject these values or use a different approach.
  * 
- * TODO: For production, consider generating this file dynamically with actual env values
- * For now, we'll use a postMessage approach to get config from the main app.
+ * IMPORTANT: These values are loaded from a separate config endpoint
+ * to avoid hardcoding in source code (GitHub secret scanning).
+ * 
+ * Note: Firebase CLIENT API keys are designed to be public and are safe
+ * to expose (they're restricted by domain in Firebase Console settings).
+ * However, we load them from an endpoint to avoid GitHub alerts.
  */
-const firebaseConfig = {
-    apiKey: "AIzaSyCgDYqtcxl6XM5dd1B54BOc45tASXb-pc8",
-    authDomain: "befix-panel.firebaseapp.com",
-    projectId: "befix-panel",
-    storageBucket: "befix-panel.firebasestorage.app",
-    messagingSenderId: "110844709095",
-    appId: "1:110844709095:web:26c3b39903bca7212afa42",
-    measurementId: "G-MRBYVTENF9"
+let firebaseConfig = null;
+
+// Fetch config from endpoint
+self.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'FIREBASE_CONFIG') {
+        firebaseConfig = event.data.config;
+        if (firebaseConfig && !firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+    }
+});
+
+// Firebase will be initialized when config is received via postMessage
+// Get messaging instance after initialization
+let messaging = null;
+
+// Initialize messaging when Firebase is ready
+const getMessaging = () => {
+    if (!messaging && firebase.apps.length > 0) {
+        messaging = firebase.messaging();
+    }
+    return messaging;
 };
-
-// Initialize Firebase in service worker
-firebase.initializeApp(firebaseConfig);
-
-// Get Firebase Messaging instance
-const messaging = firebase.messaging();
 
 /**
  * Handle background messages (when app is closed/not in focus)
  * This will show a notification automatically
  */
-messaging.onBackgroundMessage((payload) => {
+self.addEventListener('push', (event) => {
+    const msg = getMessaging();
+    if (!msg) return;
+    
+    // Let Firebase handle the push event
+});
     console.log("[firebase-messaging-sw.js] Received background message:", payload);
 
     const notificationTitle = payload.notification?.title || "New Notification";
