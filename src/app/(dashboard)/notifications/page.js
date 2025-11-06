@@ -28,7 +28,7 @@ import { toast } from "sonner";
 
 /**
  * Notifications Page
- * 
+ *
  * Full notification management interface with:
  * - Tabs: All / Unread / Read
  * - Filter by type
@@ -52,12 +52,14 @@ export default function NotificationsPage() {
         const readFilter = activeTab === "all" ? null : activeTab === "unread" ? false : true;
         const typeFilter = selectedType === "all" ? null : selectedType;
 
-        dispatch(fetchNotifications({
-            page: pagination.page,
-            limit: 20,
-            read: readFilter,
-            type: typeFilter,
-        }));
+        dispatch(
+            fetchNotifications({
+                page: pagination.page,
+                limit: 20,
+                read: readFilter,
+                type: typeFilter,
+            })
+        );
 
         dispatch(fetchUnreadCount());
     }, [activeTab, selectedType, pagination.page, dispatch]);
@@ -125,12 +127,14 @@ export default function NotificationsPage() {
     const handlePageChange = (newPage) => {
         window.scrollTo({ top: 0, behavior: "smooth" });
         // Pagination state is managed by Redux, just fetch with new page
-        dispatch(fetchNotifications({
-            page: newPage,
-            limit: 20,
-            read: activeTab === "all" ? null : activeTab === "unread" ? false : true,
-            type: selectedType === "all" ? null : selectedType,
-        }));
+        dispatch(
+            fetchNotifications({
+                page: newPage,
+                limit: 20,
+                read: activeTab === "all" ? null : activeTab === "unread" ? false : true,
+                type: selectedType === "all" ? null : selectedType,
+            })
+        );
     };
 
     // Get badge variant for notification type
@@ -147,234 +151,263 @@ export default function NotificationsPage() {
     };
 
     return (
-        <div className="space-y-6">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold" style={{ color: "var(--color-text-primary)" }}>
-                        Notifications
-                    </h1>
-                    <p className="mt-1" style={{ color: "var(--color-text-secondary)" }}>
-                        Stay updated with all your notifications
-                        {unreadCount > 0 && ` • ${unreadCount} unread`}
-                    </p>
+        <div className="p-6">
+            <div className="space-y-6">
+                {/* Header */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                        <h1
+                            className="text-3xl font-bold"
+                            style={{ color: "var(--color-text-primary)" }}
+                        >
+                            Notifications
+                        </h1>
+                        <p className="mt-1" style={{ color: "var(--color-text-secondary)" }}>
+                            Stay updated with all your notifications
+                            {unreadCount > 0 && ` • ${unreadCount} unread`}
+                        </p>
+                    </div>
+
+                    {/* Actions */}
+                    {notifications.length > 0 && (
+                        <div className="flex gap-2">
+                            {unreadCount > 0 && (
+                                <Button
+                                    onClick={handleMarkAllAsRead}
+                                    variant="secondary"
+                                    size="sm"
+                                    icon={<CheckCheck className="w-4 h-4" />}
+                                >
+                                    Mark all read
+                                </Button>
+                            )}
+                            {activeTab === "read" && notifications.length > 0 && (
+                                <Button
+                                    onClick={handleDeleteAllRead}
+                                    variant="danger"
+                                    size="sm"
+                                    icon={<Trash2 className="w-4 h-4" />}
+                                >
+                                    Delete all read
+                                </Button>
+                            )}
+                        </div>
+                    )}
                 </div>
 
-                {/* Actions */}
-                {notifications.length > 0 && (
-                    <div className="flex gap-2">
-                        {unreadCount > 0 && (
-                            <Button
-                                onClick={handleMarkAllAsRead}
-                                variant="secondary"
-                                size="sm"
-                                icon={<CheckCheck className="w-4 h-4" />}
-                            >
-                                Mark all read
-                            </Button>
-                        )}
-                        {activeTab === "read" && notifications.length > 0 && (
-                            <Button
-                                onClick={handleDeleteAllRead}
-                                variant="danger"
-                                size="sm"
-                                icon={<Trash2 className="w-4 h-4" />}
-                            >
-                                Delete all read
-                            </Button>
-                        )}
-                    </div>
-                )}
-            </div>
+                {/* Tabs & Filters */}
+                <Card>
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        {/* Tabs */}
+                        <div className="flex border-b border-gray-200 dark:border-gray-700">
+                            {[
+                                { key: "all", label: "All", count: pagination.total },
+                                { key: "unread", label: "Unread", count: unreadCount },
+                                {
+                                    key: "read",
+                                    label: "Read",
+                                    count: pagination.total - unreadCount,
+                                },
+                            ].map((tab) => (
+                                <button
+                                    key={tab.key}
+                                    onClick={() => handleTabChange(tab.key)}
+                                    className={`px-4 py-2 font-medium text-sm transition-colors border-b-2 ${
+                                        activeTab === tab.key
+                                            ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                                            : "border-transparent hover:text-gray-700 dark:hover:text-gray-300"
+                                    }`}
+                                    style={{
+                                        color:
+                                            activeTab === tab.key
+                                                ? "var(--color-primary)"
+                                                : "var(--color-text-secondary)",
+                                    }}
+                                >
+                                    {tab.label}
+                                    {tab.count > 0 && (
+                                        <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-gray-100 dark:bg-gray-800">
+                                            {tab.count}
+                                        </span>
+                                    )}
+                                </button>
+                            ))}
+                        </div>
 
-            {/* Tabs & Filters */}
-            <Card>
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    {/* Tabs */}
-                    <div className="flex border-b border-gray-200 dark:border-gray-700">
-                        {[
-                            { key: "all", label: "All", count: pagination.total },
-                            { key: "unread", label: "Unread", count: unreadCount },
-                            { key: "read", label: "Read", count: pagination.total - unreadCount },
-                        ].map((tab) => (
-                            <button
-                                key={tab.key}
-                                onClick={() => handleTabChange(tab.key)}
-                                className={`px-4 py-2 font-medium text-sm transition-colors border-b-2 ${
-                                    activeTab === tab.key
-                                        ? "border-blue-500 text-blue-600 dark:text-blue-400"
-                                        : "border-transparent hover:text-gray-700 dark:hover:text-gray-300"
-                                }`}
+                        {/* Type Filter */}
+                        <div className="flex items-center gap-2">
+                            <Filter
+                                className="w-4 h-4"
+                                style={{ color: "var(--color-text-secondary)" }}
+                            />
+                            <select
+                                value={selectedType}
+                                onChange={(e) => handleTypeChange(e.target.value)}
+                                className="px-3 py-1.5 text-sm border rounded-lg"
                                 style={{
-                                    color: activeTab === tab.key
-                                        ? "var(--color-primary)"
-                                        : "var(--color-text-secondary)",
+                                    color: "var(--color-text-primary)",
+                                    backgroundColor: "var(--color-background)",
+                                    borderColor: "var(--color-border)",
                                 }}
                             >
-                                {tab.label}
-                                {tab.count > 0 && (
-                                    <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-gray-100 dark:bg-gray-800">
-                                        {tab.count}
-                                    </span>
-                                )}
-                            </button>
-                        ))}
+                                <option value="all">All Types</option>
+                                <option value="success">Success</option>
+                                <option value="info">Info</option>
+                                <option value="warning">Warning</option>
+                                <option value="error">Error</option>
+                                <option value="system">System</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
                     </div>
-
-                    {/* Type Filter */}
-                    <div className="flex items-center gap-2">
-                        <Filter className="w-4 h-4" style={{ color: "var(--color-text-secondary)" }} />
-                        <select
-                            value={selectedType}
-                            onChange={(e) => handleTypeChange(e.target.value)}
-                            className="px-3 py-1.5 text-sm border rounded-lg"
-                            style={{
-                                color: "var(--color-text-primary)",
-                                backgroundColor: "var(--color-background)",
-                                borderColor: "var(--color-border)",
-                            }}
-                        >
-                            <option value="all">All Types</option>
-                            <option value="success">Success</option>
-                            <option value="info">Info</option>
-                            <option value="warning">Warning</option>
-                            <option value="error">Error</option>
-                            <option value="system">System</option>
-                            <option value="admin">Admin</option>
-                        </select>
-                    </div>
-                </div>
-            </Card>
-
-            {/* Notifications List */}
-            {loading && notifications.length === 0 ? (
-                <Card>
-                    <Skeleton type="list" count={5} />
                 </Card>
-            ) : notifications.length === 0 ? (
-                <EmptyState
-                    icon={Bell}
-                    title="No notifications"
-                    description={
-                        activeTab === "unread"
-                            ? "You're all caught up! No unread notifications."
-                            : activeTab === "read"
-                            ? "No read notifications yet."
-                            : "You haven't received any notifications yet."
-                    }
-                />
-            ) : (
-                <div className="space-y-3">
-                    {notifications.map((notification) => (
-                        <Card key={notification._id} className="hover:shadow-md transition-shadow">
-                            <div className="flex gap-4">
-                                {/* Read indicator */}
-                                <div className="flex-shrink-0 pt-1">
-                                    <div
-                                        className={`w-3 h-3 rounded-full ${
-                                            !notification.read
-                                                ? "bg-blue-500"
-                                                : "bg-gray-300 dark:bg-gray-600"
-                                        }`}
-                                    ></div>
-                                </div>
 
-                                {/* Content */}
-                                <div className="flex-1 min-w-0">
-                                    <div className="flex items-start justify-between gap-4 mb-2">
-                                        <div className="flex-1">
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <h3
-                                                    className={`text-lg font-semibold ${
-                                                        !notification.read ? "font-bold" : ""
-                                                    }`}
-                                                    style={{ color: "var(--color-text-primary)" }}
+                {/* Notifications List */}
+                {loading && notifications.length === 0 ? (
+                    <Card>
+                        <Skeleton type="list" count={5} />
+                    </Card>
+                ) : notifications.length === 0 ? (
+                    <EmptyState
+                        icon={Bell}
+                        title="No notifications"
+                        description={
+                            activeTab === "unread"
+                                ? "You're all caught up! No unread notifications."
+                                : activeTab === "read"
+                                  ? "No read notifications yet."
+                                  : "You haven't received any notifications yet."
+                        }
+                    />
+                ) : (
+                    <div className="space-y-3">
+                        {notifications.map((notification) => (
+                            <Card
+                                key={notification._id}
+                                className="hover:shadow-md transition-shadow"
+                            >
+                                <div className="flex gap-4">
+                                    {/* Read indicator */}
+                                    <div className="flex-shrink-0 pt-1">
+                                        <div
+                                            className={`w-3 h-3 rounded-full ${
+                                                !notification.read
+                                                    ? "bg-blue-500"
+                                                    : "bg-gray-300 dark:bg-gray-600"
+                                            }`}
+                                        ></div>
+                                    </div>
+
+                                    {/* Content */}
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-start justify-between gap-4 mb-2">
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <h3
+                                                        className={`text-lg font-semibold ${
+                                                            !notification.read ? "font-bold" : ""
+                                                        }`}
+                                                        style={{
+                                                            color: "var(--color-text-primary)",
+                                                        }}
+                                                    >
+                                                        {notification.title}
+                                                    </h3>
+                                                    <Badge
+                                                        variant={getTypeVariant(notification.type)}
+                                                    >
+                                                        {notification.type}
+                                                    </Badge>
+                                                </div>
+                                                <p
+                                                    className="text-sm"
+                                                    style={{ color: "var(--color-text-secondary)" }}
                                                 >
-                                                    {notification.title}
-                                                </h3>
-                                                <Badge variant={getTypeVariant(notification.type)}>
-                                                    {notification.type}
-                                                </Badge>
+                                                    {notification.message}
+                                                </p>
                                             </div>
-                                            <p
-                                                className="text-sm"
-                                                style={{ color: "var(--color-text-secondary)" }}
-                                            >
-                                                {notification.message}
-                                            </p>
+
+                                            {/* Actions */}
+                                            <div className="flex gap-2">
+                                                {!notification.read && (
+                                                    <Button
+                                                        onClick={() =>
+                                                            handleMarkAsRead(notification._id)
+                                                        }
+                                                        variant="secondary"
+                                                        size="sm"
+                                                        icon={<Check className="w-4 h-4" />}
+                                                    >
+                                                        Mark read
+                                                    </Button>
+                                                )}
+                                                <Button
+                                                    onClick={() => handleDelete(notification._id)}
+                                                    variant="danger"
+                                                    size="sm"
+                                                    icon={<Trash2 className="w-4 h-4" />}
+                                                >
+                                                    Delete
+                                                </Button>
+                                            </div>
                                         </div>
 
-                                        {/* Actions */}
-                                        <div className="flex gap-2">
-                                            {!notification.read && (
+                                        {/* Metadata */}
+                                        <div
+                                            className="flex flex-wrap items-center gap-4 text-xs"
+                                            style={{ color: "var(--color-text-tertiary)" }}
+                                        >
+                                            <span>
+                                                {formatDistanceToNow(notification.createdAt)}
+                                            </span>
+                                            <span>•</span>
+                                            <span>
+                                                {formatDate(notification.createdAt, "long")}
+                                            </span>
+                                            {notification.sender && (
+                                                <>
+                                                    <span>•</span>
+                                                    <span>From: {notification.sender.name}</span>
+                                                </>
+                                            )}
+                                        </div>
+
+                                        {/* Action button */}
+                                        {notification.actionUrl && notification.actionLabel && (
+                                            <div className="mt-3">
                                                 <Button
-                                                    onClick={() => handleMarkAsRead(notification._id)}
+                                                    onClick={() => {
+                                                        if (!notification.read) {
+                                                            handleMarkAsRead(notification._id);
+                                                        }
+                                                        window.location.href =
+                                                            notification.actionUrl;
+                                                    }}
                                                     variant="secondary"
                                                     size="sm"
-                                                    icon={<Check className="w-4 h-4" />}
                                                 >
-                                                    Mark read
+                                                    {notification.actionLabel}
                                                 </Button>
-                                            )}
-                                            <Button
-                                                onClick={() => handleDelete(notification._id)}
-                                                variant="danger"
-                                                size="sm"
-                                                icon={<Trash2 className="w-4 h-4" />}
-                                            >
-                                                Delete
-                                            </Button>
-                                        </div>
-                                    </div>
-
-                                    {/* Metadata */}
-                                    <div className="flex flex-wrap items-center gap-4 text-xs" style={{ color: "var(--color-text-tertiary)" }}>
-                                        <span>{formatDistanceToNow(notification.createdAt)}</span>
-                                        <span>•</span>
-                                        <span>{formatDate(notification.createdAt, "long")}</span>
-                                        {notification.sender && (
-                                            <>
-                                                <span>•</span>
-                                                <span>From: {notification.sender.name}</span>
-                                            </>
+                                            </div>
                                         )}
                                     </div>
-
-                                    {/* Action button */}
-                                    {notification.actionUrl && notification.actionLabel && (
-                                        <div className="mt-3">
-                                            <Button
-                                                onClick={() => {
-                                                    if (!notification.read) {
-                                                        handleMarkAsRead(notification._id);
-                                                    }
-                                                    window.location.href = notification.actionUrl;
-                                                }}
-                                                variant="secondary"
-                                                size="sm"
-                                            >
-                                                {notification.actionLabel}
-                                            </Button>
-                                        </div>
-                                    )}
                                 </div>
-                            </div>
-                        </Card>
-                    ))}
-                </div>
-            )}
+                            </Card>
+                        ))}
+                    </div>
+                )}
 
-            {/* Pagination */}
-            {!loading && pagination.pages > 1 && (
-                <Pagination
-                    currentPage={pagination.page}
-                    totalPages={pagination.pages}
-                    onPageChange={handlePageChange}
-                    totalItems={pagination.total}
-                    itemsPerPage={pagination.limit}
-                />
-            )}
+                {/* Pagination */}
+                {!loading && pagination.pages > 1 && (
+                    <Pagination
+                        currentPage={pagination.page}
+                        totalPages={pagination.pages}
+                        onPageChange={handlePageChange}
+                        totalItems={pagination.total}
+                        itemsPerPage={pagination.limit}
+                    />
+                )}
+            </div>
         </div>
     );
 }
-

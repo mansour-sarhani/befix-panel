@@ -18,7 +18,7 @@ import axios from "@/lib/axios";
 
 /**
  * Send Notification Page (Admin/Manager Only)
- * 
+ *
  * Allows admins and managers to send custom notifications to:
  * - All users
  * - Specific role (admin/manager/user)
@@ -33,7 +33,7 @@ export default function SendNotificationPage() {
 
     // Check authorization
     useEffect(() => {
-        if (user && !['admin', 'manager'].includes(user.role)) {
+        if (user && !["admin", "manager"].includes(user.role)) {
             toast.error("Access denied: Admin or Manager role required");
             router.push("/notifications");
         }
@@ -61,16 +61,16 @@ export default function SendNotificationPage() {
     const handleSubmit = async (values, { setSubmitting, resetForm }) => {
         try {
             await sendNotification(values);
-            
+
             toast.success("Notification sent successfully!", {
                 description: `Sent to ${
-                    values.recipientType === "all" 
-                        ? "all users" 
-                        : values.recipientType === "role" 
-                        ? `all ${values.recipients}s`
-                        : values.recipientType === "multiple"
-                        ? `${values.recipients.length} users`
-                        : "1 user"
+                    values.recipientType === "all"
+                        ? "all users"
+                        : values.recipientType === "role"
+                          ? `all ${values.recipients}s`
+                          : values.recipientType === "multiple"
+                            ? `${values.recipients.length} users`
+                            : "1 user"
                 }`,
             });
 
@@ -94,13 +94,15 @@ export default function SendNotificationPage() {
         {
             name: "Maintenance",
             title: "Scheduled Maintenance",
-            message: "System maintenance is scheduled for tonight at 11 PM. Expected downtime: 30 minutes.",
+            message:
+                "System maintenance is scheduled for tonight at 11 PM. Expected downtime: 30 minutes.",
             type: "warning",
         },
         {
             name: "Feature Update",
             title: "New Features Available!",
-            message: "We've added exciting new features to the platform. Check them out in your dashboard!",
+            message:
+                "We've added exciting new features to the platform. Check them out in your dashboard!",
             type: "info",
         },
         {
@@ -111,257 +113,321 @@ export default function SendNotificationPage() {
         },
     ];
 
-    if (!user || !['admin', 'manager'].includes(user.role)) {
+    if (!user || !["admin", "manager"].includes(user.role)) {
         return null;
     }
 
     return (
-        <div className="space-y-6">
-            {/* Header */}
-            <div>
-                <h1 className="text-3xl font-bold" style={{ color: "var(--color-text-primary)" }}>
-                    Send Notification
-                </h1>
-                <p className="mt-1" style={{ color: "var(--color-text-secondary)" }}>
-                    Send custom notifications to users
-                </p>
-            </div>
-
-            {/* Alert */}
-            <Card className="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500">
-                <div className="flex gap-3">
-                    <AlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-                    <div>
-                        <h3 className="font-semibold text-blue-900 dark:text-blue-300 mb-1">
-                            Admin Notification Sender
-                        </h3>
-                        <p className="text-sm text-blue-800 dark:text-blue-400">
-                            Notifications will be saved to the database and delivered via push to all selected recipients.
-                        </p>
-                    </div>
+        <div className="p-6">
+            <div className="space-y-6">
+                {/* Header */}
+                <div>
+                    <h1
+                        className="text-3xl font-bold"
+                        style={{ color: "var(--color-text-primary)" }}
+                    >
+                        Send Notification
+                    </h1>
+                    <p className="mt-1" style={{ color: "var(--color-text-secondary)" }}>
+                        Send custom notifications to users
+                    </p>
                 </div>
-            </Card>
 
-            {/* Main Form */}
-            <Card>
-                <Formik
-                    initialValues={{
-                        recipientType: "all",
-                        recipients: "",
-                        title: "",
-                        message: "",
-                        type: "info",
-                        actionUrl: "",
-                        actionLabel: "",
-                    }}
-                    validationSchema={sendNotificationSchema}
-                    onSubmit={handleSubmit}
-                >
-                    {({ values, setFieldValue, isSubmitting }) => (
-                        <Form className="space-y-6">
-                            {/* Quick Templates */}
-                            <div>
-                                <label className="block text-sm font-medium mb-2" style={{ color: "var(--color-text-primary)" }}>
-                                    Quick Templates (Optional)
-                                </label>
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                                    {templates.map((template) => (
-                                        <button
-                                            key={template.name}
-                                            type="button"
-                                            onClick={() => {
-                                                setFieldValue("title", template.title);
-                                                setFieldValue("message", template.message);
-                                                setFieldValue("type", template.type);
-                                            }}
-                                            className="px-3 py-2 text-sm border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                                            style={{
-                                                borderColor: "var(--color-border)",
-                                                color: "var(--color-text-secondary)",
-                                            }}
-                                        >
-                                            {template.name}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
+                {/* Alert */}
+                <Card className="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500">
+                    <div className="flex gap-3">
+                        <AlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                        <div>
+                            <h3 className="font-semibold text-blue-900 dark:text-blue-300 mb-1">
+                                Admin Notification Sender
+                            </h3>
+                            <p className="text-sm text-blue-800 dark:text-blue-400">
+                                Notifications will be saved to the database and delivered via push
+                                to all selected recipients.
+                            </p>
+                        </div>
+                    </div>
+                </Card>
 
-                            {/* Recipient Type */}
-                            <SelectField name="recipientType" label="Send To">
-                                <option value="all">All Users</option>
-                                <option value="role">Specific Role</option>
-                                <option value="single">Single User</option>
-                                <option value="multiple">Multiple Users (Future)</option>
-                            </SelectField>
-
-                            {/* Role Selection */}
-                            {values.recipientType === "role" && (
-                                <SelectField name="recipients" label="Select Role">
-                                    <option value="">Select a role...</option>
-                                    <option value="admin">Admins</option>
-                                    <option value="manager">Managers</option>
-                                    <option value="user">Regular Users</option>
-                                </SelectField>
-                            )}
-
-                            {/* Single User Selection */}
-                            {values.recipientType === "single" && (
-                                <SelectField name="recipients" label="Select User" disabled={loadingUsers}>
-                                    <option value="">Select a user...</option>
-                                    {users.map((u) => (
-                                        <option key={u._id} value={u._id}>
-                                            {u.name} ({u.email}) - {u.role}
-                                        </option>
-                                    ))}
-                                </SelectField>
-                            )}
-
-                            {/* Notification Content */}
-                            <InputField
-                                name="title"
-                                label="Notification Title"
-                                placeholder="Enter notification title"
-                                maxLength={100}
-                            />
-
-                            <TextareaField
-                                name="message"
-                                label="Notification Message"
-                                placeholder="Enter notification message"
-                                rows={4}
-                                maxLength={500}
-                            />
-
-                            <SelectField name="type" label="Notification Type">
-                                <option value="info">Info</option>
-                                <option value="success">Success</option>
-                                <option value="warning">Warning</option>
-                                <option value="error">Error</option>
-                                <option value="admin">Admin</option>
-                                <option value="system">System</option>
-                            </SelectField>
-
-                            {/* Optional Action */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <InputField
-                                    name="actionUrl"
-                                    label="Action URL (Optional)"
-                                    placeholder="/dashboard"
-                                    helperText="URL to navigate to when notification is clicked"
-                                />
-
-                                <InputField
-                                    name="actionLabel"
-                                    label="Action Label (Optional)"
-                                    placeholder="View Details"
-                                    helperText="Button text for the action"
-                                />
-                            </div>
-
-                            {/* Preview */}
-                            {values.title && values.message && (
+                {/* Main Form */}
+                <Card>
+                    <Formik
+                        initialValues={{
+                            recipientType: "all",
+                            recipients: "",
+                            title: "",
+                            message: "",
+                            type: "info",
+                            actionUrl: "",
+                            actionLabel: "",
+                        }}
+                        validationSchema={sendNotificationSchema}
+                        onSubmit={handleSubmit}
+                    >
+                        {({ values, setFieldValue, isSubmitting }) => (
+                            <Form className="space-y-6">
+                                {/* Quick Templates */}
                                 <div>
-                                    <label className="block text-sm font-medium mb-2" style={{ color: "var(--color-text-primary)" }}>
-                                        Preview
+                                    <label
+                                        className="block text-sm font-medium mb-2"
+                                        style={{ color: "var(--color-text-primary)" }}
+                                    >
+                                        Quick Templates (Optional)
                                     </label>
-                                    <div className="p-4 border rounded-lg bg-gray-50 dark:bg-gray-800/50" style={{ borderColor: "var(--color-border)" }}>
-                                        <div className="flex items-start gap-3">
-                                            <div className="flex-1">
-                                                <div className="flex items-center gap-2 mb-1">
-                                                    <h4 className="font-semibold" style={{ color: "var(--color-text-primary)" }}>
-                                                        {values.title}
-                                                    </h4>
-                                                    <Badge variant={values.type === "success" ? "success" : values.type === "error" ? "danger" : values.type === "warning" ? "warning" : "primary"}>
-                                                        {values.type}
-                                                    </Badge>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                                        {templates.map((template) => (
+                                            <button
+                                                key={template.name}
+                                                type="button"
+                                                onClick={() => {
+                                                    setFieldValue("title", template.title);
+                                                    setFieldValue("message", template.message);
+                                                    setFieldValue("type", template.type);
+                                                }}
+                                                className="px-3 py-2 text-sm border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                                                style={{
+                                                    borderColor: "var(--color-border)",
+                                                    color: "var(--color-text-secondary)",
+                                                }}
+                                            >
+                                                {template.name}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Recipient Type */}
+                                <SelectField name="recipientType" label="Send To">
+                                    <option value="all">All Users</option>
+                                    <option value="role">Specific Role</option>
+                                    <option value="single">Single User</option>
+                                    <option value="multiple">Multiple Users (Future)</option>
+                                </SelectField>
+
+                                {/* Role Selection */}
+                                {values.recipientType === "role" && (
+                                    <SelectField name="recipients" label="Select Role">
+                                        <option value="">Select a role...</option>
+                                        <option value="admin">Admins</option>
+                                        <option value="manager">Managers</option>
+                                        <option value="user">Regular Users</option>
+                                    </SelectField>
+                                )}
+
+                                {/* Single User Selection */}
+                                {values.recipientType === "single" && (
+                                    <SelectField
+                                        name="recipients"
+                                        label="Select User"
+                                        disabled={loadingUsers}
+                                    >
+                                        <option value="">Select a user...</option>
+                                        {users.map((u) => (
+                                            <option key={u._id} value={u._id}>
+                                                {u.name} ({u.email}) - {u.role}
+                                            </option>
+                                        ))}
+                                    </SelectField>
+                                )}
+
+                                {/* Notification Content */}
+                                <InputField
+                                    name="title"
+                                    label="Notification Title"
+                                    placeholder="Enter notification title"
+                                    maxLength={100}
+                                />
+
+                                <TextareaField
+                                    name="message"
+                                    label="Notification Message"
+                                    placeholder="Enter notification message"
+                                    rows={4}
+                                    maxLength={500}
+                                />
+
+                                <SelectField name="type" label="Notification Type">
+                                    <option value="info">Info</option>
+                                    <option value="success">Success</option>
+                                    <option value="warning">Warning</option>
+                                    <option value="error">Error</option>
+                                    <option value="admin">Admin</option>
+                                    <option value="system">System</option>
+                                </SelectField>
+
+                                {/* Optional Action */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <InputField
+                                        name="actionUrl"
+                                        label="Action URL (Optional)"
+                                        placeholder="/dashboard"
+                                        helperText="URL to navigate to when notification is clicked"
+                                    />
+
+                                    <InputField
+                                        name="actionLabel"
+                                        label="Action Label (Optional)"
+                                        placeholder="View Details"
+                                        helperText="Button text for the action"
+                                    />
+                                </div>
+
+                                {/* Preview */}
+                                {values.title && values.message && (
+                                    <div>
+                                        <label
+                                            className="block text-sm font-medium mb-2"
+                                            style={{ color: "var(--color-text-primary)" }}
+                                        >
+                                            Preview
+                                        </label>
+                                        <div
+                                            className="p-4 border rounded-lg bg-gray-50 dark:bg-gray-800/50"
+                                            style={{ borderColor: "var(--color-border)" }}
+                                        >
+                                            <div className="flex items-start gap-3">
+                                                <div className="flex-1">
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <h4
+                                                            className="font-semibold"
+                                                            style={{
+                                                                color: "var(--color-text-primary)",
+                                                            }}
+                                                        >
+                                                            {values.title}
+                                                        </h4>
+                                                        <Badge
+                                                            variant={
+                                                                values.type === "success"
+                                                                    ? "success"
+                                                                    : values.type === "error"
+                                                                      ? "danger"
+                                                                      : values.type === "warning"
+                                                                        ? "warning"
+                                                                        : "primary"
+                                                            }
+                                                        >
+                                                            {values.type}
+                                                        </Badge>
+                                                    </div>
+                                                    <p
+                                                        className="text-sm"
+                                                        style={{
+                                                            color: "var(--color-text-secondary)",
+                                                        }}
+                                                    >
+                                                        {values.message}
+                                                    </p>
+                                                    {values.actionLabel && (
+                                                        <button
+                                                            className="mt-2 text-sm font-medium"
+                                                            style={{
+                                                                color: "var(--color-primary)",
+                                                            }}
+                                                        >
+                                                            {values.actionLabel} →
+                                                        </button>
+                                                    )}
                                                 </div>
-                                                <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
-                                                    {values.message}
-                                                </p>
-                                                {values.actionLabel && (
-                                                    <button className="mt-2 text-sm font-medium" style={{ color: "var(--color-primary)" }}>
-                                                        {values.actionLabel} →
-                                                    </button>
-                                                )}
                                             </div>
                                         </div>
                                     </div>
+                                )}
+
+                                {/* Submit */}
+                                <div
+                                    className="flex gap-3 pt-4 border-t"
+                                    style={{ borderColor: "var(--color-border)" }}
+                                >
+                                    <Button
+                                        type="submit"
+                                        loading={isSubmitting}
+                                        icon={<Send className="w-4 h-4" />}
+                                    >
+                                        Send Notification
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        variant="secondary"
+                                        onClick={() => router.push("/notifications")}
+                                    >
+                                        Cancel
+                                    </Button>
                                 </div>
-                            )}
+                            </Form>
+                        )}
+                    </Formik>
+                </Card>
 
-                            {/* Submit */}
-                            <div className="flex gap-3 pt-4 border-t" style={{ borderColor: "var(--color-border)" }}>
-                                <Button
-                                    type="submit"
-                                    loading={isSubmitting}
-                                    icon={<Send className="w-4 h-4" />}
-                                >
-                                    Send Notification
-                                </Button>
-                                <Button
-                                    type="button"
-                                    variant="secondary"
-                                    onClick={() => router.push("/notifications")}
-                                >
-                                    Cancel
-                                </Button>
+                {/* Info Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <Card>
+                        <div className="flex items-center gap-3">
+                            <div className="p-3 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
+                                <Users className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                             </div>
-                        </Form>
-                    )}
-                </Formik>
-            </Card>
+                            <div>
+                                <p
+                                    className="text-sm"
+                                    style={{ color: "var(--color-text-secondary)" }}
+                                >
+                                    Total Users
+                                </p>
+                                <p
+                                    className="text-2xl font-bold"
+                                    style={{ color: "var(--color-text-primary)" }}
+                                >
+                                    {users.length}
+                                </p>
+                            </div>
+                        </div>
+                    </Card>
 
-            {/* Info Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card>
-                    <div className="flex items-center gap-3">
-                        <div className="p-3 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
-                            <Users className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                    <Card>
+                        <div className="flex items-center gap-3">
+                            <div className="p-3 bg-green-100 dark:bg-green-900/20 rounded-lg">
+                                <Shield className="w-6 h-6 text-green-600 dark:text-green-400" />
+                            </div>
+                            <div>
+                                <p
+                                    className="text-sm"
+                                    style={{ color: "var(--color-text-secondary)" }}
+                                >
+                                    Your Role
+                                </p>
+                                <p
+                                    className="text-xl font-bold capitalize"
+                                    style={{ color: "var(--color-text-primary)" }}
+                                >
+                                    {user?.role}
+                                </p>
+                            </div>
                         </div>
-                        <div>
-                            <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
-                                Total Users
-                            </p>
-                            <p className="text-2xl font-bold" style={{ color: "var(--color-text-primary)" }}>
-                                {users.length}
-                            </p>
-                        </div>
-                    </div>
-                </Card>
+                    </Card>
 
-                <Card>
-                    <div className="flex items-center gap-3">
-                        <div className="p-3 bg-green-100 dark:bg-green-900/20 rounded-lg">
-                            <Shield className="w-6 h-6 text-green-600 dark:text-green-400" />
+                    <Card>
+                        <div className="flex items-center gap-3">
+                            <div className="p-3 bg-purple-100 dark:bg-purple-900/20 rounded-lg">
+                                <Send className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                            </div>
+                            <div>
+                                <p
+                                    className="text-sm"
+                                    style={{ color: "var(--color-text-secondary)" }}
+                                >
+                                    Delivery
+                                </p>
+                                <p
+                                    className="text-xl font-bold"
+                                    style={{ color: "var(--color-text-primary)" }}
+                                >
+                                    Push + DB
+                                </p>
+                            </div>
                         </div>
-                        <div>
-                            <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
-                                Your Role
-                            </p>
-                            <p className="text-xl font-bold capitalize" style={{ color: "var(--color-text-primary)" }}>
-                                {user?.role}
-                            </p>
-                        </div>
-                    </div>
-                </Card>
-
-                <Card>
-                    <div className="flex items-center gap-3">
-                        <div className="p-3 bg-purple-100 dark:bg-purple-900/20 rounded-lg">
-                            <Send className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-                        </div>
-                        <div>
-                            <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
-                                Delivery
-                            </p>
-                            <p className="text-xl font-bold" style={{ color: "var(--color-text-primary)" }}>
-                                Push + DB
-                            </p>
-                        </div>
-                    </div>
-                </Card>
+                    </Card>
+                </div>
             </div>
         </div>
     );
 }
-
