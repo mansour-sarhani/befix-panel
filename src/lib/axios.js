@@ -1,5 +1,7 @@
-import axios from 'axios';
-import { API_BASE_URL, API_TIMEOUT, STORAGE_KEYS } from '@/constants/config';
+import axios from "axios";
+import { API_BASE_URL, API_TIMEOUT, STORAGE_KEYS } from "@/constants/config";
+
+const isDebugLoggingEnabled = process.env.NEXT_PUBLIC_ENABLE_API_DEBUG === "true";
 
 /**
  * Axios Instance Configuration
@@ -11,7 +13,7 @@ const axiosInstance = axios.create({
     baseURL: API_BASE_URL,
     timeout: API_TIMEOUT,
     headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
     },
 });
 
@@ -26,7 +28,7 @@ axiosInstance.interceptors.request.use(
         config.withCredentials = true;
 
         // Log request in development
-        if (process.env.NODE_ENV === 'development') {
+        if (isDebugLoggingEnabled) {
             console.log(`🚀 [API Request] ${config.method?.toUpperCase()} ${config.url}`, {
                 params: config.params,
                 data: config.data,
@@ -36,7 +38,7 @@ axiosInstance.interceptors.request.use(
         return config;
     },
     (error) => {
-        console.error('❌ [API Request Error]', error);
+        console.error("❌ [API Request Error]", error);
         return Promise.reject(error);
     }
 );
@@ -48,11 +50,14 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
     (response) => {
         // Log response in development
-        if (process.env.NODE_ENV === 'development') {
-            console.log(`✅ [API Response] ${response.config.method?.toUpperCase()} ${response.config.url}`, {
-                status: response.status,
-                data: response.data,
-            });
+        if (isDebugLoggingEnabled) {
+            console.log(
+                `✅ [API Response] ${response.config.method?.toUpperCase()} ${response.config.url}`,
+                {
+                    status: response.status,
+                    data: response.data,
+                }
+            );
         }
 
         return response;
@@ -64,7 +69,7 @@ axiosInstance.interceptors.response.use(
             const { status, data } = error.response;
 
             // Don't log 401 errors for auth check endpoint (expected behavior)
-            const isAuthCheck = error.config.url?.includes('/api/auth/check');
+            const isAuthCheck = error.config.url?.includes("/api/auth/check");
             if (!(status === 401 && isAuthCheck)) {
                 console.error(`❌ [API Error] ${status}:`, data);
             }
@@ -78,22 +83,31 @@ axiosInstance.interceptors.response.use(
 
                 case 403:
                     // Forbidden - User doesn't have permission
-                    console.error('Access forbidden:', data?.message || 'You do not have permission to access this resource');
+                    console.error(
+                        "Access forbidden:",
+                        data?.message || "You do not have permission to access this resource"
+                    );
                     break;
 
                 case 404:
                     // Not Found
-                    console.error('Resource not found:', data?.message || 'The requested resource was not found');
+                    console.error(
+                        "Resource not found:",
+                        data?.message || "The requested resource was not found"
+                    );
                     break;
 
                 case 422:
                     // Validation Error
-                    console.error('Validation error:', data?.errors || data?.message);
+                    console.error("Validation error:", data?.errors || data?.message);
                     break;
 
                 case 429:
                     // Too Many Requests
-                    console.error('Rate limit exceeded:', data?.message || 'Too many requests. Please try again later.');
+                    console.error(
+                        "Rate limit exceeded:",
+                        data?.message || "Too many requests. Please try again later."
+                    );
                     break;
 
                 case 500:
@@ -101,34 +115,37 @@ axiosInstance.interceptors.response.use(
                 case 503:
                 case 504:
                     // Server Errors
-                    console.error('Server error:', data?.message || 'An error occurred on the server. Please try again later.');
+                    console.error(
+                        "Server error:",
+                        data?.message || "An error occurred on the server. Please try again later."
+                    );
                     break;
 
                 default:
-                    console.error('API error:', data?.message || 'An unexpected error occurred');
+                    console.error("API error:", data?.message || "An unexpected error occurred");
             }
 
             // Standardize error format
             return Promise.reject({
                 status,
-                message: data?.message || 'An error occurred',
+                message: data?.message || "An error occurred",
                 errors: data?.errors || null,
                 data: data,
             });
         } else if (error.request) {
             // Request was made but no response received (network error)
-            console.error('❌ [Network Error] No response received:', error.request);
+            console.error("❌ [Network Error] No response received:", error.request);
             return Promise.reject({
                 status: 0,
-                message: 'Network error. Please check your internet connection.',
+                message: "Network error. Please check your internet connection.",
                 errors: null,
             });
         } else {
             // Something else happened
-            console.error('❌ [Request Error]', error.message);
+            console.error("❌ [Request Error]", error.message);
             return Promise.reject({
                 status: 0,
-                message: error.message || 'An unexpected error occurred',
+                message: error.message || "An unexpected error occurred",
                 errors: null,
             });
         }
@@ -140,25 +157,27 @@ axiosInstance.interceptors.response.use(
  * Cookie is cleared by server, we just need to redirect to login
  */
 function handleUnauthorized(isAuthCheck = false) {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
         // Clear any user data from localStorage (optional, for UI state)
         localStorage.removeItem(STORAGE_KEYS.USER);
 
         // Get current path to redirect back after login
         const currentPath = window.location.pathname;
-        const isLoginPage = currentPath === '/login';
+        const isLoginPage = currentPath === "/login";
 
         // Don't redirect if:
         // 1. Already on login page
         // 2. This is just an auth check (not a real API call failure)
         if (!isLoginPage && !isAuthCheck) {
-            console.log('🔒 Session expired. Redirecting to login...');
-            
+            if (isDebugLoggingEnabled) {
+                console.log("🔒 Session expired. Redirecting to login...");
+            }
+
             // Store the current path to redirect back after login
-            sessionStorage.setItem('redirect_after_login', currentPath);
-            
+            sessionStorage.setItem("redirect_after_login", currentPath);
+
             // Redirect to login
-            window.location.href = '/login';
+            window.location.href = "/login";
         }
     }
 }
@@ -209,4 +228,3 @@ export const api = {
 
 // Export configured axios instance
 export default axiosInstance;
-

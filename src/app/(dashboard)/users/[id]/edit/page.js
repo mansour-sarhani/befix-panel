@@ -16,6 +16,7 @@ import { FileUploadField } from "@/components/forms/FileUploadField";
 import { Avatar } from "@/components/common/Avatar";
 import { Loader } from "@/components/common/Loader";
 import { ArrowLeft, Upload } from "lucide-react";
+import { ContentWrapper } from "@/components/layout/ContentWrapper";
 
 export default function EditUserPage({ params }) {
     const unwrappedParams = use(params);
@@ -106,7 +107,7 @@ export default function EditUserPage({ params }) {
     }
 
     return (
-        <div className="p-6">
+        <ContentWrapper>
             {/* Header */}
             <div className="mb-6">
                 <Button
@@ -259,6 +260,6 @@ export default function EditUserPage({ params }) {
                     )}
                 </Formik>
             </Card>
-        </div>
+        </ContentWrapper>
     );
 }

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card } from "@/components/common/Card";
 import { Button } from "@/components/common/Button";
+import { ContentWrapper } from "@/components/layout/ContentWrapper";
 
 /**
  * Debug Authentication Issues
@@ -92,7 +93,7 @@ export default function DebugAuthPage() {
     };
 
     return (
-        <div className="max-w-4xl mx-auto space-y-6">
+        <ContentWrapper>
             <Card>
                 <h1
                     className="text-2xl font-bold mb-4"
@@ -254,6 +255,6 @@ export default function DebugAuthPage() {
                     </div>
                 </div>
             </Card>
-        </div>
+        </ContentWrapper>
     );
 }

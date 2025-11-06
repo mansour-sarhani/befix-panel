@@ -3,25 +3,26 @@
 import { useState } from "react";
 import { Card } from "@/components/common/Card";
 import { Button } from "@/components/common/Button";
-import { 
-    requestNotificationPermission, 
-    getCurrentToken, 
+import {
+    requestNotificationPermission,
+    getCurrentToken,
     onForegroundMessage,
     getNotificationPermission,
-    isNotificationSupported 
+    isNotificationSupported,
 } from "@/lib/firebase/client";
 import { toast } from "sonner";
+import { ContentWrapper } from "@/components/layout/ContentWrapper";
 
 /**
  * Firebase Cloud Messaging Test Page
- * 
+ *
  * This is a development/testing page to verify Firebase FCM setup.
  * Use this page to:
  * 1. Check if notifications are supported
  * 2. Request notification permission
  * 3. Get and display FCM token
  * 4. Test foreground message handling
- * 
+ *
  * TODO: Remove this page in production or gate it behind admin-only access
  */
 export default function FirebaseTestPage() {
@@ -34,7 +35,7 @@ export default function FirebaseTestPage() {
         setLoading(true);
         try {
             const fcmToken = await requestNotificationPermission();
-            
+
             if (fcmToken) {
                 setToken(fcmToken);
                 setPermission("granted");
@@ -56,7 +57,7 @@ export default function FirebaseTestPage() {
         setLoading(true);
         try {
             const currentToken = await getCurrentToken();
-            
+
             if (currentToken) {
                 setToken(currentToken);
                 toast.success("Token retrieved successfully!");
@@ -80,14 +81,11 @@ export default function FirebaseTestPage() {
         try {
             const unsubscribe = onForegroundMessage((payload) => {
                 console.log("Foreground message received:", payload);
-                
-                toast.success(
-                    payload.notification?.title || "New Notification",
-                    {
-                        description: payload.notification?.body || "",
-                        duration: 5000,
-                    }
-                );
+
+                toast.success(payload.notification?.title || "New Notification", {
+                    description: payload.notification?.body || "",
+                    duration: 5000,
+                });
             });
 
             setListening(true);
@@ -112,7 +110,7 @@ export default function FirebaseTestPage() {
         if ("serviceWorker" in navigator) {
             try {
                 const registration = await navigator.serviceWorker.getRegistration();
-                
+
                 if (registration) {
                     toast.success("Service Worker is registered!", {
                         description: `State: ${registration.active?.state || "inactive"}`,
@@ -133,7 +131,7 @@ export default function FirebaseTestPage() {
     const supported = isNotificationSupported();
 
     return (
-        <div className="space-y-6">
+        <ContentWrapper>
             <div>
                 <h1 className="text-3xl font-bold" style={{ color: "var(--color-text-primary)" }}>
                     Firebase Cloud Messaging Test
@@ -145,7 +143,10 @@ export default function FirebaseTestPage() {
 
             {/* Browser Support Status */}
             <Card>
-                <h2 className="text-xl font-semibold mb-4" style={{ color: "var(--color-text-primary)" }}>
+                <h2
+                    className="text-xl font-semibold mb-4"
+                    style={{ color: "var(--color-text-primary)" }}
+                >
                     Browser Support
                 </h2>
                 <div className="space-y-2">
@@ -153,7 +154,13 @@ export default function FirebaseTestPage() {
                         <span style={{ color: "var(--color-text-secondary)" }}>
                             Notifications Supported:
                         </span>
-                        <span className={supported ? "text-green-600 font-semibold" : "text-red-600 font-semibold"}>
+                        <span
+                            className={
+                                supported
+                                    ? "text-green-600 font-semibold"
+                                    : "text-red-600 font-semibold"
+                            }
+                        >
                             {supported ? "✅ Yes" : "❌ No"}
                         </span>
                     </div>
@@ -161,11 +168,15 @@ export default function FirebaseTestPage() {
                         <span style={{ color: "var(--color-text-secondary)" }}>
                             Permission Status:
                         </span>
-                        <span className={`font-semibold ${
-                            permission === "granted" ? "text-green-600" : 
-                            permission === "denied" ? "text-red-600" : 
-                            "text-yellow-600"
-                        }`}>
+                        <span
+                            className={`font-semibold ${
+                                permission === "granted"
+                                    ? "text-green-600"
+                                    : permission === "denied"
+                                      ? "text-red-600"
+                                      : "text-yellow-600"
+                            }`}
+                        >
                             {permission || "unknown"}
                         </span>
                     </div>
@@ -173,9 +184,11 @@ export default function FirebaseTestPage() {
                         <span style={{ color: "var(--color-text-secondary)" }}>
                             Service Worker:
                         </span>
-                        <span className={`font-semibold ${
-                            "serviceWorker" in navigator ? "text-green-600" : "text-red-600"
-                        }`}>
+                        <span
+                            className={`font-semibold ${
+                                "serviceWorker" in navigator ? "text-green-600" : "text-red-600"
+                            }`}
+                        >
                             {"serviceWorker" in navigator ? "✅ Supported" : "❌ Not Supported"}
                         </span>
                     </div>
@@ -184,39 +197,39 @@ export default function FirebaseTestPage() {
 
             {/* Actions */}
             <Card>
-                <h2 className="text-xl font-semibold mb-4" style={{ color: "var(--color-text-primary)" }}>
+                <h2
+                    className="text-xl font-semibold mb-4"
+                    style={{ color: "var(--color-text-primary)" }}
+                >
                     Actions
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Button 
-                        onClick={handleRequestPermission} 
+                    <Button
+                        onClick={handleRequestPermission}
                         loading={loading}
                         disabled={!supported || permission === "granted"}
                     >
                         Request Notification Permission
                     </Button>
-                    
-                    <Button 
-                        onClick={handleGetCurrentToken} 
+
+                    <Button
+                        onClick={handleGetCurrentToken}
                         loading={loading}
                         variant="secondary"
                         disabled={!supported}
                     >
                         Get Current FCM Token
                     </Button>
-                    
-                    <Button 
+
+                    <Button
                         onClick={handleListenForMessages}
                         variant="secondary"
                         disabled={!supported || !token || listening}
                     >
                         {listening ? "✅ Listening for Messages" : "Listen for Foreground Messages"}
                     </Button>
-                    
-                    <Button 
-                        onClick={handleTestServiceWorker}
-                        variant="secondary"
-                    >
+
+                    <Button onClick={handleTestServiceWorker} variant="secondary">
                         Test Service Worker
                     </Button>
                 </div>
@@ -226,7 +239,10 @@ export default function FirebaseTestPage() {
             {token && (
                 <Card>
                     <div className="flex justify-between items-center mb-4">
-                        <h2 className="text-xl font-semibold" style={{ color: "var(--color-text-primary)" }}>
+                        <h2
+                            className="text-xl font-semibold"
+                            style={{ color: "var(--color-text-primary)" }}
+                        >
                             FCM Token
                         </h2>
                         <Button onClick={handleCopyToken} variant="secondary" size="sm">
@@ -234,66 +250,105 @@ export default function FirebaseTestPage() {
                         </Button>
                     </div>
                     <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
-                        <code className="text-sm break-all" style={{ color: "var(--color-text-secondary)" }}>
+                        <code
+                            className="text-sm break-all"
+                            style={{ color: "var(--color-text-secondary)" }}
+                        >
                             {token}
                         </code>
                     </div>
                     <p className="mt-2 text-sm" style={{ color: "var(--color-text-secondary)" }}>
-                        💡 This token is unique to this browser/device. Save it to your database to send push notifications.
+                        💡 This token is unique to this browser/device. Save it to your database to
+                        send push notifications.
                     </p>
                 </Card>
             )}
 
             {/* Instructions */}
             <Card>
-                <h2 className="text-xl font-semibold mb-4" style={{ color: "var(--color-text-primary)" }}>
+                <h2
+                    className="text-xl font-semibold mb-4"
+                    style={{ color: "var(--color-text-primary)" }}
+                >
                     Testing Instructions
                 </h2>
                 <div className="space-y-4" style={{ color: "var(--color-text-secondary)" }}>
                     <div>
-                        <h3 className="font-semibold mb-2" style={{ color: "var(--color-text-primary)" }}>
+                        <h3
+                            className="font-semibold mb-2"
+                            style={{ color: "var(--color-text-primary)" }}
+                        >
                             Step 1: Request Permission
                         </h3>
-                        <p>Click "Request Notification Permission" button. Your browser will show a popup asking for permission.</p>
+                        <p>
+                            Click &quot;Request Notification Permission&quot; button. Your browser
+                            will show a popup asking for permission.
+                        </p>
                     </div>
-                    
+
                     <div>
-                        <h3 className="font-semibold mb-2" style={{ color: "var(--color-text-primary)" }}>
+                        <h3
+                            className="font-semibold mb-2"
+                            style={{ color: "var(--color-text-primary)" }}
+                        >
                             Step 2: Get Token
                         </h3>
-                        <p>After granting permission, click "Get Current FCM Token" to retrieve your device token.</p>
+                        <p>
+                            After granting permission, click &quot;Get Current FCM Token&quot; to
+                            retrieve your device token.
+                        </p>
                     </div>
-                    
+
                     <div>
-                        <h3 className="font-semibold mb-2" style={{ color: "var(--color-text-primary)" }}>
+                        <h3
+                            className="font-semibold mb-2"
+                            style={{ color: "var(--color-text-primary)" }}
+                        >
                             Step 3: Listen for Messages
                         </h3>
-                        <p>Click "Listen for Foreground Messages" to start receiving notifications when the app is open.</p>
+                        <p>
+                            Click &quot;Listen for Foreground Messages&quot; to start receiving
+                            notifications when the app is open.
+                        </p>
                     </div>
-                    
+
                     <div>
-                        <h3 className="font-semibold mb-2" style={{ color: "var(--color-text-primary)" }}>
+                        <h3
+                            className="font-semibold mb-2"
+                            style={{ color: "var(--color-text-primary)" }}
+                        >
                             Step 4: Test Push Notification
                         </h3>
-                        <p>Use the Firebase Console Composer to send a test message to your token, or implement the backend sender.</p>
+                        <p>
+                            Use the Firebase Console Composer to send a test message to your token,
+                            or implement the backend sender.
+                        </p>
                     </div>
                 </div>
             </Card>
 
             {/* Troubleshooting */}
             <Card>
-                <h2 className="text-xl font-semibold mb-4" style={{ color: "var(--color-text-primary)" }}>
+                <h2
+                    className="text-xl font-semibold mb-4"
+                    style={{ color: "var(--color-text-primary)" }}
+                >
                     Troubleshooting
                 </h2>
-                <ul className="space-y-2 list-disc list-inside" style={{ color: "var(--color-text-secondary)" }}>
-                    <li>Make sure you've added VAPID key to .env.local</li>
+                <ul
+                    className="space-y-2 list-disc list-inside"
+                    style={{ color: "var(--color-text-secondary)" }}
+                >
+                    <li>Make sure you&apos;ve added VAPID key to .env.local</li>
                     <li>Check browser console for error messages</li>
-                    <li>Ensure you're on localhost or HTTPS (required for notifications)</li>
+                    <li>Ensure you&apos;re on localhost or HTTPS (required for notifications)</li>
                     <li>Try in Incognito mode if issues persist</li>
-                    <li>Check that firebase-messaging-sw.js is accessible at /firebase-messaging-sw.js</li>
+                    <li>
+                        Check that firebase-messaging-sw.js is accessible at
+                        /firebase-messaging-sw.js
+                    </li>
                 </ul>
             </Card>
-        </div>
+        </ContentWrapper>
     );
 }
-

@@ -45,7 +45,7 @@ export const Header = ({ onMenuClick, sidebarCollapsed }) => {
                     <div>
                         <h2
                             className="text-xl font-bold hidden sm:block"
-                            style={{ color: "var(--color-text-primary)" }}
+                            style={{ color: "var(--color-text-inverse)" }}
                         >
                             Dashboard
                         </h2>
@@ -64,11 +64,7 @@ export const Header = ({ onMenuClick, sidebarCollapsed }) => {
                     <div className="relative">
                         <button
                             onClick={() => setShowUserMenu(!showUserMenu)}
-                            className="flex items-center gap-2 px-3 py-2 rounded-lg transition-all hover:scale-[1.02]"
-                            style={{
-                                backgroundColor:
-                                    "var(--color-background-secondary)",
-                            }}
+                            className="flex items-center gap-2 px-3 py-2 rounded-lg transition-all hover:scale-[1.02] hover:bg-[var(--color-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"
                             aria-label="User menu"
                         >
                             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center ring-2 ring-white/20">
@@ -78,7 +74,7 @@ export const Header = ({ onMenuClick, sidebarCollapsed }) => {
                                 <span
                                     className="text-sm font-semibold"
                                     style={{
-                                        color: "var(--color-text-primary)",
+                                        color: "var(--color-text-inverse)",
                                     }}
                                 >
                                     {user?.name || user?.email || "Admin"}
@@ -86,7 +82,7 @@ export const Header = ({ onMenuClick, sidebarCollapsed }) => {
                                 <ChevronDown
                                     className="w-4 h-4"
                                     style={{
-                                        color: "var(--color-text-tertiary)",
+                                        color: "var(--color-text-secondary)",
                                     }}
                                 />
                             </div>

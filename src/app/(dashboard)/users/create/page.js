@@ -12,6 +12,7 @@ import { InputField } from "@/components/forms/InputField";
 import { SelectField } from "@/components/forms/SelectField";
 import { FileUploadField } from "@/components/forms/FileUploadField";
 import { ArrowLeft } from "lucide-react";
+import { ContentWrapper } from "@/components/layout/ContentWrapper";
 
 export default function CreateUserPage() {
     const router = useRouter();
@@ -35,7 +36,7 @@ export default function CreateUserPage() {
     };
 
     return (
-        <div className="p-6">
+        <ContentWrapper>
             {/* Header */}
             <div className="mb-6">
                 <Button
@@ -154,6 +155,6 @@ export default function CreateUserPage() {
                     )}
                 </Formik>
             </Card>
-        </div>
+        </ContentWrapper>
     );
 }

@@ -91,7 +91,7 @@ export function TableActions({
                         <div
                             className="absolute right-0 mt-2 w-40 rounded-lg shadow-lg border z-20"
                             style={{
-                                backgroundColor: 'var(--color-background)',
+                                backgroundColor: 'var(--color-card-bg)',
                                 borderColor: 'var(--color-border)',
                             }}
                         >

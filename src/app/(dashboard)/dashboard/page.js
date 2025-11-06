@@ -260,8 +260,8 @@ export default function DashboardPage() {
             {/* System Status */}
             <div className="mt-6">
                 <Card>
-                    <div className="flex items-center justify-between">
-                        <div>
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="text-center sm:text-left">
                             <h2 className="text-lg font-bold text-[var(--color-text-primary)] mb-1">
                                 System Status
                             </h2>
@@ -269,7 +269,7 @@ export default function DashboardPage() {
                                 All systems operational
                             </p>
                         </div>
-                        <div className="flex items-center gap-6">
+                        <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 w-full sm:w-auto">
                             <div className="text-center">
                                 <p className="text-xs text-[var(--color-text-secondary)] mb-1">
                                     Database

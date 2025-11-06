@@ -24,6 +24,7 @@ import { Avatar } from "@/components/common/Avatar";
 import { InputField } from "@/components/forms/InputField";
 import { SelectField } from "@/components/forms/SelectField";
 import { Users, Plus, Search, Filter } from "lucide-react";
+import { ContentWrapper } from "@/components/layout/ContentWrapper";
 
 export default function UsersPage() {
     const router = useRouter();
@@ -244,9 +245,9 @@ export default function UsersPage() {
     };
 
     return (
-        <div className="p-6">
+        <ContentWrapper>
             {/* Header */}
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
                 <div>
                     <h1
                         className="text-2xl font-bold"
@@ -258,7 +259,11 @@ export default function UsersPage() {
                         Manage system users and their permissions
                     </p>
                 </div>
-                <Button onClick={() => router.push("/users/create")} icon={<Plus size={18} />}>
+                <Button
+                    onClick={() => router.push("/users/create")}
+                    icon={<Plus size={18} />}
+                    className="w-full md:w-auto"
+                >
                     Add User
                 </Button>
             </div>
@@ -476,6 +481,6 @@ export default function UsersPage() {
                     </div>
                 </div>
             </Modal>
-        </div>
+        </ContentWrapper>
     );
 }

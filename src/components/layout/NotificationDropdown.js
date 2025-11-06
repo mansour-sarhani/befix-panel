@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Bell } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import {
     fetchNotifications,
@@ -17,24 +18,25 @@ import { formatDistanceToNow } from "@/lib/utils";
 
 /**
  * NotificationDropdown Component
- * 
+ *
  * Bell icon with badge showing unread count.
  * Dropdown displays recent 5 notifications.
  * Click notification to mark as read and navigate to action URL.
  */
 export const NotificationDropdown = () => {
     const dispatch = useAppDispatch();
+    const router = useRouter();
     const notifications = useAppSelector(selectNotifications);
     const unreadCount = useAppSelector(selectUnreadCount);
     const loading = useAppSelector(selectNotificationsLoading);
-    
+
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
 
     // Fetch unread count on mount and every 30 seconds
     useEffect(() => {
         dispatch(fetchUnreadCount());
-        
+
         const interval = setInterval(() => {
             dispatch(fetchUnreadCount());
         }, 30000); // 30 seconds
@@ -78,15 +80,15 @@ export const NotificationDropdown = () => {
         setIsOpen(false);
 
         // Navigate to action URL if exists
-        if (notification.actionUrl && typeof window !== "undefined") {
-            window.location.href = notification.actionUrl;
+        if (notification.actionUrl) {
+            router.push(notification.actionUrl);
         }
     };
 
     // Get notification icon and color based on type
     const getNotificationStyle = (type) => {
         const styles = {
-            success: "bg-green-100 dark:bg-green-900/20 text-green-600 dark:text-green-400",
+            success: "bg-[var(--color-success-surface)] text-[var(--color-success-foreground)]",
             error: "bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400",
             warning: "bg-yellow-100 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400",
             info: "bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400",
@@ -101,12 +103,12 @@ export const NotificationDropdown = () => {
             {/* Bell Icon Button */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="relative p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                className="relative p-2 rounded-lg transition-colors hover:bg-[var(--color-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"
                 aria-label="Notifications"
                 aria-expanded={isOpen}
             >
                 <Bell className="w-5 h-5" style={{ color: "var(--color-text-secondary)" }} />
-                
+
                 {/* Badge with unread count */}
                 {unreadCount > 0 && (
                     <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-bold text-white bg-red-500 rounded-full animate-pulse">
@@ -118,19 +120,28 @@ export const NotificationDropdown = () => {
             {/* Dropdown Menu */}
             {isOpen && (
                 <div
-                    className="absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-gray-900 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden z-50"
+                    className="absolute right-0 mt-2 w-80 sm:w-96 rounded-lg shadow-lg border overflow-hidden z-50"
                     style={{
-                        backgroundColor: "var(--color-background)",
+                        backgroundColor: "var(--color-card-bg)",
                         borderColor: "var(--color-border)",
                     }}
                 >
                     {/* Header */}
-                    <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-                        <h3 className="font-semibold" style={{ color: "var(--color-text-primary)" }}>
+                    <div
+                        className="px-4 py-3 border-b flex items-center justify-between"
+                        style={{ borderColor: "var(--color-border)" }}
+                    >
+                        <h3
+                            className="font-semibold"
+                            style={{ color: "var(--color-text-primary)" }}
+                        >
                             Notifications
                         </h3>
                         {unreadCount > 0 && (
-                            <span className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
+                            <span
+                                className="text-sm"
+                                style={{ color: "var(--color-text-secondary)" }}
+                            >
                                 {unreadCount} unread
                             </span>
                         )}
@@ -141,8 +152,14 @@ export const NotificationDropdown = () => {
                         {loading && notifications.length === 0 ? (
                             // Loading state
                             <div className="p-8 text-center">
-                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto" style={{ borderColor: "var(--color-primary)" }}></div>
-                                <p className="mt-2 text-sm" style={{ color: "var(--color-text-secondary)" }}>
+                                <div
+                                    className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto"
+                                    style={{ borderColor: "var(--color-primary)" }}
+                                ></div>
+                                <p
+                                    className="mt-2 text-sm"
+                                    style={{ color: "var(--color-text-secondary)" }}
+                                >
                                     Loading notifications...
                                 </p>
                             </div>
@@ -150,11 +167,17 @@ export const NotificationDropdown = () => {
                             // Empty state
                             <div className="p-8 text-center">
                                 <Bell className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                                <p className="font-medium" style={{ color: "var(--color-text-primary)" }}>
+                                <p
+                                    className="font-medium"
+                                    style={{ color: "var(--color-text-primary)" }}
+                                >
                                     No notifications yet
                                 </p>
-                                <p className="text-sm mt-1" style={{ color: "var(--color-text-secondary)" }}>
-                                    You're all caught up!
+                                <p
+                                    className="text-sm mt-1"
+                                    style={{ color: "var(--color-text-secondary)" }}
+                                >
+                                    You&apos;re all caught up!
                                 </p>
                             </div>
                         ) : (
@@ -163,34 +186,62 @@ export const NotificationDropdown = () => {
                                 <button
                                     key={notification._id}
                                     onClick={() => handleNotificationClick(notification)}
-                                    className={`w-full px-4 py-3 border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors text-left ${
-                                        !notification.read ? "bg-blue-50/50 dark:bg-blue-900/10" : ""
-                                    }`}
+                                    className="w-full px-4 py-3 border-b transition-colors text-left"
+                                    style={{
+                                        borderColor: "var(--color-border)",
+                                        backgroundColor: !notification.read
+                                            ? "var(--color-background-secondary)"
+                                            : "transparent",
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.currentTarget.style.backgroundColor =
+                                            "var(--color-hover)";
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.backgroundColor = !notification.read
+                                            ? "var(--color-background-secondary)"
+                                            : "transparent";
+                                    }}
                                 >
                                     <div className="flex gap-3">
                                         {/* Type indicator */}
-                                        <div className={`flex-shrink-0 w-2 h-2 rounded-full mt-2 ${
-                                            !notification.read ? "bg-blue-500" : "bg-gray-300 dark:bg-gray-600"
-                                        }`}></div>
+                                        <div
+                                            className={`flex-shrink-0 w-2 h-2 rounded-full mt-2 ${
+                                                !notification.read
+                                                    ? "bg-blue-500"
+                                                    : "bg-gray-300 dark:bg-gray-600"
+                                            }`}
+                                        ></div>
 
                                         {/* Content */}
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-start justify-between gap-2 mb-1">
-                                                <h4 className={`text-sm font-medium truncate ${
-                                                    !notification.read ? "font-semibold" : ""
-                                                }`} style={{ color: "var(--color-text-primary)" }}>
+                                                <h4
+                                                    className={`text-sm font-medium truncate ${
+                                                        !notification.read ? "font-semibold" : ""
+                                                    }`}
+                                                    style={{ color: "var(--color-text-primary)" }}
+                                                >
                                                     {notification.title}
                                                 </h4>
-                                                <span className={`flex-shrink-0 px-2 py-0.5 text-xs font-medium rounded ${
-                                                    getNotificationStyle(notification.type)
-                                                }`}>
+                                                <span
+                                                    className={`flex-shrink-0 px-2 py-0.5 text-xs font-medium rounded ${getNotificationStyle(
+                                                        notification.type
+                                                    )}`}
+                                                >
                                                     {notification.type}
                                                 </span>
                                             </div>
-                                            <p className="text-sm line-clamp-2" style={{ color: "var(--color-text-secondary)" }}>
+                                            <p
+                                                className="text-sm line-clamp-2"
+                                                style={{ color: "var(--color-text-secondary)" }}
+                                            >
                                                 {notification.message}
                                             </p>
-                                            <p className="text-xs mt-1" style={{ color: "var(--color-text-tertiary)" }}>
+                                            <p
+                                                className="text-xs mt-1"
+                                                style={{ color: "var(--color-text-tertiary)" }}
+                                            >
                                                 {formatDistanceToNow(notification.createdAt)}
                                             </p>
                                         </div>
@@ -202,7 +253,10 @@ export const NotificationDropdown = () => {
 
                     {/* Footer */}
                     {notifications.length > 0 && (
-                        <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-700">
+                        <div
+                            className="px-4 py-3 border-t"
+                            style={{ borderColor: "var(--color-border)" }}
+                        >
                             <Link
                                 href="/notifications"
                                 onClick={() => setIsOpen(false)}
@@ -218,4 +272,3 @@ export const NotificationDropdown = () => {
         </div>
     );
 };
-

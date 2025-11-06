@@ -23,6 +23,7 @@ import { getBrowserName } from "@/lib/utils";
  * - Periodic unread count refresh
  */
 const NotificationContext = createContext({});
+const isDebugLoggingEnabled = process.env.NEXT_PUBLIC_ENABLE_NOTIFICATION_DEBUG === "true";
 
 export const useNotifications = () => {
     const context = useContext(NotificationContext);
@@ -47,7 +48,9 @@ export const NotificationProvider = ({ children }) => {
             if (!isAuthenticated || tokenRegistered) return;
 
             try {
-                console.log("🔔 Attempting to register FCM token...");
+                if (isDebugLoggingEnabled) {
+                    console.log("🔔 Attempting to register FCM token...");
+                }
 
                 // Check current permission status
                 const permission = Notification?.permission;
@@ -62,12 +65,16 @@ export const NotificationProvider = ({ children }) => {
                     token = await requestNotificationPermission();
                 } else {
                     // Permission denied
-                    console.log("ℹ️ Notification permission denied by user");
+                    if (isDebugLoggingEnabled) {
+                        console.log("ℹ️ Notification permission denied by user");
+                    }
                     return;
                 }
 
                 if (!token) {
-                    console.log("ℹ️ No FCM token available");
+                    if (isDebugLoggingEnabled) {
+                        console.log("ℹ️ No FCM token available");
+                    }
                     return;
                 }
 
@@ -77,7 +84,9 @@ export const NotificationProvider = ({ children }) => {
                 await registerFcmToken(token, "web", getBrowserName());
 
                 setTokenRegistered(true);
-                console.log("✅ FCM token registered successfully");
+                if (isDebugLoggingEnabled) {
+                    console.log("✅ FCM token registered successfully");
+                }
 
                 // Don't show toast - silent registration for better UX
             } catch (error) {
@@ -98,10 +107,14 @@ export const NotificationProvider = ({ children }) => {
     useEffect(() => {
         if (!isAuthenticated) return;
 
-        console.log("🔔 Setting up foreground message listener...");
+        if (isDebugLoggingEnabled) {
+            console.log("🔔 Setting up foreground message listener...");
+        }
 
         const unsubscribe = onForegroundMessage((payload) => {
-            console.log("📬 Foreground notification received:", payload);
+            if (isDebugLoggingEnabled) {
+                console.log("📬 Foreground notification received:", payload);
+            }
 
             const { notification, data } = payload;
 
@@ -129,7 +142,9 @@ export const NotificationProvider = ({ children }) => {
         return () => {
             if (unsubscribe) {
                 unsubscribe();
-                console.log("🔕 Foreground message listener removed");
+                if (isDebugLoggingEnabled) {
+                    console.log("🔕 Foreground message listener removed");
+                }
             }
         };
     }, [isAuthenticated, dispatch]);

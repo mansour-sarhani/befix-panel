@@ -25,12 +25,13 @@ export const Badge = ({
 
   // Variant styles using CSS custom properties
   const variantStyles = {
-    success: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
-    error: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
-    warning: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
-    info: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
-    neutral: 'bg-[var(--color-secondary)] text-[var(--color-text-secondary)]',
-    primary: 'bg-[var(--color-primary)] text-white',
+    success: 'bg-[var(--color-success-surface)] text-[var(--color-success-foreground)]',
+    error: 'bg-[var(--color-error-surface)] text-[var(--color-error-foreground)]',
+    danger: 'bg-[var(--color-error-surface)] text-[var(--color-error-foreground)]',
+    warning: 'bg-[var(--color-warning-surface)] text-[var(--color-warning-foreground)]',
+    info: 'bg-[var(--color-info-surface)] text-[var(--color-info-foreground)]',
+    neutral: 'bg-[var(--color-background-secondary)] text-[var(--color-text-secondary)]',
+    primary: 'bg-[var(--color-primary)] text-[var(--color-text-inverse)]',
   };
 
   // Size styles
@@ -48,10 +49,11 @@ export const Badge = ({
   };
 
   const dotColors = {
-    success: 'bg-green-600 dark:bg-green-400',
-    error: 'bg-red-600 dark:bg-red-400',
-    warning: 'bg-yellow-600 dark:bg-yellow-400',
-    info: 'bg-blue-600 dark:bg-blue-400',
+    success: 'bg-[var(--color-success)]',
+    error: 'bg-[var(--color-error)]',
+    danger: 'bg-[var(--color-error)]',
+    warning: 'bg-[var(--color-warning)]',
+    info: 'bg-[var(--color-info)]',
     neutral: 'bg-[var(--color-text-secondary)]',
     primary: 'bg-white',
   };

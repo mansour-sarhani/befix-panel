@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import {
     fetchNotifications,
@@ -25,6 +26,7 @@ import { Skeleton } from "@/components/common/Skeleton";
 import { Bell, Check, CheckCheck, Trash2, Filter } from "lucide-react";
 import { formatDistanceToNow, formatDate } from "@/lib/utils";
 import { toast } from "sonner";
+import { ContentWrapper } from "@/components/layout/ContentWrapper";
 
 /**
  * Notifications Page
@@ -38,6 +40,7 @@ import { toast } from "sonner";
  */
 export default function NotificationsPage() {
     const dispatch = useAppDispatch();
+    const router = useRouter();
     const notifications = useAppSelector(selectNotifications);
     const unreadCount = useAppSelector(selectUnreadCount);
     const loading = useAppSelector(selectNotificationsLoading);
@@ -151,10 +154,10 @@ export default function NotificationsPage() {
     };
 
     return (
-        <div className="p-6">
+        <ContentWrapper>
             <div className="space-y-6">
                 {/* Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                         <h1
                             className="text-3xl font-bold"
@@ -170,12 +173,13 @@ export default function NotificationsPage() {
 
                     {/* Actions */}
                     {notifications.length > 0 && (
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap gap-2 sm:flex-nowrap sm:justify-end">
                             {unreadCount > 0 && (
                                 <Button
                                     onClick={handleMarkAllAsRead}
                                     variant="secondary"
                                     size="sm"
+                                    className="w-full sm:w-auto"
                                     icon={<CheckCheck className="w-4 h-4" />}
                                 >
                                     Mark all read
@@ -186,6 +190,7 @@ export default function NotificationsPage() {
                                     onClick={handleDeleteAllRead}
                                     variant="danger"
                                     size="sm"
+                                    className="w-full sm:w-auto"
                                     icon={<Trash2 className="w-4 h-4" />}
                                 >
                                     Delete all read
@@ -197,9 +202,9 @@ export default function NotificationsPage() {
 
                 {/* Tabs & Filters */}
                 <Card>
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                         {/* Tabs */}
-                        <div className="flex border-b border-gray-200 dark:border-gray-700">
+                        <div className="flex flex-wrap border-b border-gray-200 dark:border-gray-700">
                             {[
                                 { key: "all", label: "All", count: pagination.total },
                                 { key: "unread", label: "Unread", count: unreadCount },
@@ -226,7 +231,14 @@ export default function NotificationsPage() {
                                 >
                                     {tab.label}
                                     {tab.count > 0 && (
-                                        <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-gray-100 dark:bg-gray-800">
+                                        <span
+                                            className="ml-2 inline-flex min-w-[1.5rem] items-center justify-center px-2 py-0.5 text-xs font-semibold rounded-full shadow-sm"
+                                            style={{
+                                                backgroundColor: "var(--color-primary)",
+                                                color: "var(--color-text-inverse)",
+                                                boxShadow: "0 1px 2px 0 rgba(17, 24, 39, 0.08)",
+                                            }}
+                                        >
                                             {tab.count}
                                         </span>
                                     )}
@@ -286,7 +298,7 @@ export default function NotificationsPage() {
                                 key={notification._id}
                                 className="hover:shadow-md transition-shadow"
                             >
-                                <div className="flex gap-4">
+                                <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
                                     {/* Read indicator */}
                                     <div className="flex-shrink-0 pt-1">
                                         <div
@@ -300,7 +312,7 @@ export default function NotificationsPage() {
 
                                     {/* Content */}
                                     <div className="flex-1 min-w-0">
-                                        <div className="flex items-start justify-between gap-4 mb-2">
+                                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-2">
                                             <div className="flex-1">
                                                 <div className="flex items-center gap-2 mb-1">
                                                     <h3
@@ -328,7 +340,7 @@ export default function NotificationsPage() {
                                             </div>
 
                                             {/* Actions */}
-                                            <div className="flex gap-2">
+                                            <div className="flex flex-wrap gap-2 sm:flex-nowrap sm:justify-end">
                                                 {!notification.read && (
                                                     <Button
                                                         onClick={() =>
@@ -336,6 +348,7 @@ export default function NotificationsPage() {
                                                         }
                                                         variant="secondary"
                                                         size="sm"
+                                                        className="w-full sm:w-auto"
                                                         icon={<Check className="w-4 h-4" />}
                                                     >
                                                         Mark read
@@ -345,6 +358,7 @@ export default function NotificationsPage() {
                                                     onClick={() => handleDelete(notification._id)}
                                                     variant="danger"
                                                     size="sm"
+                                                    className="w-full sm:w-auto"
                                                     icon={<Trash2 className="w-4 h-4" />}
                                                 >
                                                     Delete
@@ -376,15 +390,17 @@ export default function NotificationsPage() {
                                         {notification.actionUrl && notification.actionLabel && (
                                             <div className="mt-3">
                                                 <Button
-                                                    onClick={() => {
+                                                    onClick={async () => {
                                                         if (!notification.read) {
-                                                            handleMarkAsRead(notification._id);
+                                                            await handleMarkAsRead(
+                                                                notification._id
+                                                            );
                                                         }
-                                                        window.location.href =
-                                                            notification.actionUrl;
+                                                        router.push(notification.actionUrl);
                                                     }}
                                                     variant="secondary"
                                                     size="sm"
+                                                    className="w-full sm:w-auto"
                                                 >
                                                     {notification.actionLabel}
                                                 </Button>
@@ -408,6 +424,6 @@ export default function NotificationsPage() {
                     />
                 )}
             </div>
-        </div>
+        </ContentWrapper>
     );
 }
